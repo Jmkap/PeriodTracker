@@ -13,11 +13,11 @@
         android:background="@drawable/background_chat_input"
         android:backgroundTint="#D7DBDD"
         android:scaleType="centerCrop"
-        app:layout_constraintBottom_toBottomOf="@id/textMessage"
+        app:layout_constraintBottom_toBottomOf="@id/textRcvMessage"
         app:layout_constraintStart_toStartOf="parent"/>
 
     <TextView
-        android:id="@+id/textMessage"
+        android:id="@+id/textRcvMessage"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
@@ -31,13 +31,13 @@
         app:layout_constraintWidth_percent="0.75"/>
 
     <TextView
-        android:id="@+id/textDateTime"
+        android:id="@+id/textRcvDateTime"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:textColor="#B2BABB"
         android:textSize="10sp"
-        app:layout_constraintStart_toStartOf="@id/textMessage"
-        app:layout_constraintTop_toBottomOf="@id/textMessage"/>
+        app:layout_constraintStart_toStartOf="@id/textRcvMessage"
+        app:layout_constraintTop_toBottomOf="@id/textRcvMessage"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
