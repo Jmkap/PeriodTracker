@@ -57,6 +57,7 @@
         android:layout_marginRight="16dp"
         android:layout_marginBottom="12dp"
         android:background="@drawable/background_chat_input"
+        android:backgroundTint="#51ACB0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -67,7 +68,7 @@
             android:layout_marginLeft="4dp"
             android:padding="8dp"
             android:src="@drawable/ic_send"
-            app:tint="@color/black"/>
+            app:tint="@color/white"/>
 
     </FrameLayout>
 
@@ -81,6 +82,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="12dp"
         android:background="@drawable/background_chat_input"
+        android:backgroundTint="@color/white"
         android:hint="Type a Message"
         android:imeOptions="actionDone"
         android:importantForAutofill="no"
