@@ -43,11 +43,11 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:orientation="vertical"
-        android:overScrollMode="never"
         android:padding="20dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@id/topPanel"
         app:layout_constraintBottom_toTopOf="@id/LayoutSend"/>
+    <!--android:overScrollMode="never"-->
 
     <FrameLayout
         android:id="@+id/LayoutSend"
