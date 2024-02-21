@@ -9,14 +9,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class SentMessageViewHolder extends CustomViewHolder {
+public class ReceivedMessageViewHolder extends CustomViewHolder{
 
     private ArrayList<MessageModel> data;
     private TextView tvMessage;
     private TextView tvDateTime;
     private ImageView imgProfile;
 
-    public SentMessageViewHolder(@NonNull View itemView, ArrayList<MessageModel> data) {
+    public ReceivedMessageViewHolder(@NonNull View itemView, ArrayList<MessageModel> data) {
         super(itemView);
         this.data = data;
         this.tvMessage = itemView.findViewById(R.id.textSntMessage);
@@ -25,13 +25,15 @@ public class SentMessageViewHolder extends CustomViewHolder {
 
     @Override
     public void bindData(MessageModel message) {
-        this.setTvMessage(message.getMessage());
-        this.setTvDateTime(message.getDate());
+        setImgProfile(message.getPicture());
+        setTvMessage(message.getMessage());
+        setTvDateTime(message.getDate());
     }
 
     public void setTvDateTime(String tvDateTime) {
         this.tvDateTime.setText(tvDateTime);
     }
+    public void setImgProfile(int imgProfile) { this.imgProfile.setImageResource(imgProfile); }
     public void setTvMessage(String tvMessage) {
         this.tvMessage.setText(tvMessage);
     }

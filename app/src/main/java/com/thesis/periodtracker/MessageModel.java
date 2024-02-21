@@ -30,6 +30,7 @@ public class MessageModel {
     public String getMessage() {
         return this.message;
     }
+    public String getDate() { return this.date; };
 
     public int getPicture() {
         return this.picture;
