@@ -1,10 +1,12 @@
 package com.thesis.periodtracker;
 
 public class userDisease {
+    private int id;
     private String DiseaseName, description;
     private boolean LifeThreatening;
 
-    public userDisease(String diseaseName, String description, boolean lifeThreatening) {
+    public userDisease(int id, String diseaseName, String description, boolean lifeThreatening) {
+        this.id = id;
         DiseaseName = diseaseName;
         this.description = description;
         LifeThreatening = lifeThreatening;
@@ -13,6 +15,10 @@ public class userDisease {
     public userDisease() {
         DiseaseName = null;
         this.description = null;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getDiseaseName() {

@@ -3,29 +3,23 @@ package com.thesis.periodtracker;
 import java.util.ArrayList;
 
 public class UserInfoItem {
-    private int userId, age;
+    private int age;
     private String name, nickname;
     private ArrayList<userSymptom> userSymptoms;
-    private ArrayList<userDisease> PreviousDisease;
+    private ArrayList<userDisease> PreviousDiseases;
 
-    public UserInfoItem(int userId, int age, String name, String nickname) {
-        this.userId = userId;
+    public UserInfoItem(int age, String name, String nickname) {
         this.age = age;
         this.name = name;
         this.nickname = nickname;
     }
 
-    public UserInfoItem(int userId, int age, String name, String nickname, ArrayList<userSymptom> userSymptoms, ArrayList<userDisease> previousDisease) {
-        this.userId = userId;
+    public UserInfoItem(int age, String name, String nickname, ArrayList<userSymptom> userSymptoms, ArrayList<userDisease> previousDisease) {
         this.age = age;
         this.name = name;
         this.nickname = nickname;
         this.userSymptoms = userSymptoms;
-        PreviousDisease = previousDisease;
-    }
-
-    public int getUserId() {
-        return userId;
+        PreviousDiseases = previousDisease;
     }
 
     public int getAge() {
@@ -45,6 +39,6 @@ public class UserInfoItem {
     }
 
     public ArrayList<userDisease> getPreviousDisease() {
-        return PreviousDisease;
+        return PreviousDiseases;
     }
 }

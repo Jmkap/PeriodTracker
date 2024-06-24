@@ -3,13 +3,14 @@ package com.thesis.periodtracker;
 
 public class userSymptom {
     private String SymptomName, description;
-    private int durationDays;
+    private int durationDays, id;
 
     public userSymptom(String description) {
         this.description = description;
     }
 
-    public userSymptom(String symptomName, String description, int durationDays) {
+    public userSymptom(int id, String symptomName, String description, int durationDays) {
+        this.id = id;
         SymptomName = symptomName;
         this.description = description;
         this.durationDays = durationDays;
@@ -18,6 +19,10 @@ public class userSymptom {
     public userSymptom() {
         SymptomName = null;
         this.description = null;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getSymptomName(){
