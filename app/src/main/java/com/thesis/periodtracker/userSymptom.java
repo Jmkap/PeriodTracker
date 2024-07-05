@@ -2,23 +2,23 @@ package com.thesis.periodtracker;
 
 
 public class userSymptom {
-    private String SymptomName, description;
+    private String SymptomName, chatLog;
     private int durationDays, id;
 
-    public userSymptom(String description) {
-        this.description = description;
+    public userSymptom(String chatLog) {
+        this.chatLog = chatLog;
     }
 
-    public userSymptom(int id, String symptomName, String description, int durationDays) {
+    public userSymptom(int id, String symptomName, String chatLog, int durationDays) {
         this.id = id;
         SymptomName = symptomName;
-        this.description = description;
+        this.chatLog = chatLog;
         this.durationDays = durationDays;
     }
 
     public userSymptom() {
         SymptomName = null;
-        this.description = null;
+        this.chatLog = null;
     }
 
     public int getId() {
@@ -29,8 +29,8 @@ public class userSymptom {
         return this.SymptomName;
     }
 
-    public String getDescription(){
-        return this.description;
+    public String getChatLog(){
+        return this.chatLog;
     }
 
     public int getDurationDays(){
@@ -41,8 +41,8 @@ public class userSymptom {
         this.SymptomName = name;
     }
 
-    public void setDescription(String desc){
-        this.description = desc;
+    public void setChatLog(String chatLog){
+        this.chatLog = chatLog;
     }
 
     public void setDurationDays(int numDays){
