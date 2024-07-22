@@ -15,12 +15,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private ArrayList<MessageModel> messages;
 
-    // Constructor, data setter, etc.
+    public MessageAdapter(ArrayList<MessageModel> messages) {
+        this.messages = messages;
+    }
 
     @Override
     public int getItemViewType(int position) {
         MessageModel message = messages.get(position);
-        return message.getType() == VIEW_TYPE_SENT ? VIEW_TYPE_SENT : VIEW_TYPE_RECEIVED;
+        return message.getType();
     }
 
     @Override
@@ -29,10 +31,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         switch (viewType) {
             case VIEW_TYPE_SENT:
                 View sentView = inflater.inflate(R.layout.item_container_sentmessage, parent, false);
-                return new SentMessageViewHolder(sentView, messages);
+                return new SentMessageViewHolder(sentView);
             case VIEW_TYPE_RECEIVED:
                 View receivedView = inflater.inflate(R.layout.item_container_receivemessage, parent, false);
-                return new ReceivedMessageViewHolder(receivedView, messages);
+                return new ReceivedMessageViewHolder(receivedView);
             default:
                 throw new IllegalArgumentException("Invalid view type");
         }

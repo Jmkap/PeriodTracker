@@ -4,45 +4,36 @@ import android.os.Message;
 
 public class MessageModel {
 
-    private final int RECEIVED = 0;
-    private final int SENT = 1;
+    public static final int RECEIVED = 0;
+    public static final int SENT = 1;
     private String message;
     private String date;
+    private String timestamp;
     private int type;
-    private int picture;
 
     //============Constructors===============
-    public  MessageModel(String message, int picture, String date, int type) {
+    public MessageModel(String message, String date, String timestamp, int type) {
         this.message = message;
-        this.picture = picture;
         this.date = date;
+        this.timestamp = timestamp;
         this.type = type;
     }
 
-    public MessageModel(String message, int type) {
-        this.type = type;
-        this.message = message;
-    }
 
     //============Getters and Setters=============
-    public int getType() { return this.type; }
-
     public String getMessage() {
-        return this.message;
-    }
-    public String getDate() { return this.date; };
-
-    public int getPicture() {
-        return this.picture;
+        return message;
     }
 
-    public void setType(int type) { this.type = type; }
-
-    public void setMessage(String message) {
-        this.message = message;
+    public String getDate() {
+        return date;
     }
 
-    public void setPicture(int picture) {
-        this.picture = picture;
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public int getType() {
+        return type;
     }
 }

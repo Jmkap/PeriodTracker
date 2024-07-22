@@ -7,7 +7,7 @@
 
     <TextView
         android:id="@+id/textSntMessage"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/background_sentmessage"
         android:padding="12dp"

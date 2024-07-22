@@ -14,11 +14,9 @@ public class SentMessageViewHolder extends CustomViewHolder {
     private ArrayList<MessageModel> data;
     private TextView tvMessage;
     private TextView tvDateTime;
-    private ImageView imgProfile;
 
-    public SentMessageViewHolder(@NonNull View itemView, ArrayList<MessageModel> data) {
+    public SentMessageViewHolder(@NonNull View itemView) {
         super(itemView);
-        this.data = data;
         this.tvMessage = itemView.findViewById(R.id.textSntMessage);
         this.tvDateTime = itemView.findViewById(R.id.textSntDateTime);
     }
@@ -26,7 +24,7 @@ public class SentMessageViewHolder extends CustomViewHolder {
     @Override
     public void bindData(MessageModel message) {
         this.setTvMessage(message.getMessage());
-        this.setTvDateTime(message.getDate());
+        this.setTvDateTime(message.getTimestamp());
     }
 
     public void setTvDateTime(String tvDateTime) {
