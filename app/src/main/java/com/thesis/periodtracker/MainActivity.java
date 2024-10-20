@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.Application;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
@@ -27,6 +26,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -69,9 +69,6 @@ public class MainActivity extends AppCompatActivity {
     private void sendMessage() {
         String messageContent = inputMessage.getText().toString();
         OkHttpClient okHttpClient = new OkHttpClient();
-        String baseURL = this.getLocalIpAddress();
-        String URL = "http://" + baseURL + ":5005/webhooks/rest/";
-        Log.d("BASEURL", URL);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://192.168.254.102:5005/webhooks/rest/")
                 .client(okHttpClient)

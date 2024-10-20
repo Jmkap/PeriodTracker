@@ -120,7 +120,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         db.insert(SESSIONS_TABLE, null, values);
 
-        db.close();
 
         return sessionID;
     }
