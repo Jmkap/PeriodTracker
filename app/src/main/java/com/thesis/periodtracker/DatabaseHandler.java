@@ -1,10 +1,16 @@
 package com.thesis.periodtracker;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import java.text.SimpleDateFormat;
+
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.UUID;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
@@ -49,36 +55,36 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         String CREATE_SESSIONS_TABLE = "CREATE TABLE IF NOT EXISTS " + SESSIONS_TABLE + "(" +
-                SESSION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                SESSION_DATE + " DATE)";
+                SESSION_ID + " TEXT PRIMARY KEY," +
+                SESSION_DATE + " TEXT)";
 
         String CREATE_SYMPTOMS_TABLE = "CREATE TABLE IF NOT EXISTS " + SYMPTOMS_TABLE + "(" +
-                SYMPTOM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                SYMPTOM_ID + " TEXT PRIMARY KEY," +
                 SYMPTOM_NAME + " TEXT," +
                 SYMPTOM_DESCRIPTION + " TEXT," +
                 SYMPTOM_DURATION_DAYS + " INTEGER)";
 
         String CREATE_DISEASES_TABLE = "CREATE TABLE IF NOT EXISTS " + DISEASES_TABLE + "(" +
-                DISEASE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                DISEASE_SESSION_ID + " INTEGER," +
+                DISEASE_ID + " TEXT PRIMARY KEY," +
+                DISEASE_SESSION_ID + " TEXT," +
                 DISEASE_NAME + " TEXT, " +
                 "FOREIGN KEY(" + DISEASE_SESSION_ID + ") REFERENCES " + SESSIONS_TABLE + "(" + SESSION_ID + "))";
 
         String CREATE_DIAGNOSIS_TABLE = "CREATE TABLE IF NOT EXISTS " + DIAGNOSIS_TABLE + "(" +
-                DIAGNOSIS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                DIAGNOSIS_ID + " TEXT PRIMARY KEY," +
                 DIAGNOSIS_DISEASE_NAME + " TEXT," +
                 DIAGNOSIS_SCORE + " FLOAT," +
                 DIAGNOSIS_RANK + " INTEGER)";
 
         String CREATE_SESSION_SYMPTOMS_TABLE = "CREATE TABLE IF NOT EXISTS " + SESSION_SYMPTOMS_TABLE + "(" +
-                SESSION_SYMP_SESSION_ID + " INTEGER," +
-                SESSION_SYMP_SYMPTOM_ID + " INTEGER," +
+                SESSION_SYMP_SESSION_ID + " TEXT," +
+                SESSION_SYMP_SYMPTOM_ID + " TEXT," +
                 "FOREIGN KEY(" + SESSION_SYMP_SESSION_ID + ") REFERENCES " + SESSIONS_TABLE + "(" + SESSION_ID + ")," +
                 "FOREIGN KEY(" + SESSION_SYMP_SYMPTOM_ID + ") REFERENCES " + SYMPTOMS_TABLE + "(" + SYMPTOM_ID + "))";
 
         String CREATE_SESSION_DIAGNOSIS_TABLE = "CREATE TABLE IF NOT EXISTS " + SESSION_DIAGNOSIS_TABLE + "(" +
-                SESSION_DIAG_SESSION_ID + " INTEGER," +
-                SESSION_DIAG_DIAGNOSIS_ID + " INTEGER," +
+                SESSION_DIAG_SESSION_ID + " TEXT," +
+                SESSION_DIAG_DIAGNOSIS_ID + " TEXT," +
                 "FOREIGN KEY(" + SESSION_DIAG_SESSION_ID + ") REFERENCES " + SESSIONS_TABLE + "(" + SESSION_ID + ")," +
                 "FOREIGN KEY(" + SESSION_DIAG_DIAGNOSIS_ID + ") REFERENCES " + DIAGNOSIS_TABLE + "(" + DIAGNOSIS_ID + "))";
 
@@ -99,5 +105,23 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + SESSION_SYMPTOMS_TABLE);
         db.execSQL("DROP TABLE IF EXISTS " + SESSION_DIAGNOSIS_TABLE);
         onCreate(db);
+    }
+
+    public String createSession (){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String sessionID = UUID.randomUUID().toString();
+
+        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+        ContentValues values = new ContentValues();
+        values.put(SESSION_ID, sessionID);
+        values.put(SESSION_DATE, currentDate);
+
+        db.insert(SESSIONS_TABLE, null, values);
+
+        db.close();
+
+        return sessionID;
     }
 }

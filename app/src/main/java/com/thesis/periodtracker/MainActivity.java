@@ -4,14 +4,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Application;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,11 +36,17 @@ public class MainActivity extends AppCompatActivity {
     private MessageAdapter adapter;
     private ArrayList<MessageModel> messageList;
     private RasaApiService rasaApiService;
+    private boolean firstTimeMessage;
+    private String sessionID;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        DatabaseHandler databaseHandler = new DatabaseHandler(this);
+        sessionID = databaseHandler.createSession();
+
+        firstTimeMessage = true;
         inputMessage = findViewById(R.id.inputMessage);
         LayoutSend = findViewById(R.id.LayoutSend);
         recyclerView = findViewById(R.id.recyclerview);
@@ -49,13 +61,19 @@ public class MainActivity extends AppCompatActivity {
         //rasaApiService = retrofit.create(RasaApiService.class);
 
         LayoutSend.setOnClickListener(v -> sendMessage());
+
+        inputMessage.setText("Hello");
+        this.sendMessage();
     }
 
     private void sendMessage() {
         String messageContent = inputMessage.getText().toString();
         OkHttpClient okHttpClient = new OkHttpClient();
+        String baseURL = this.getLocalIpAddress();
+        String URL = "http://" + baseURL + ":5005/webhooks/rest/";
+        Log.d("BASEURL", URL);
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.1.14:5005/webhooks/rest/")
+                .baseUrl("http://192.168.254.102:5005/webhooks/rest/")
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -63,9 +81,11 @@ public class MainActivity extends AppCompatActivity {
         if (!messageContent.isEmpty()) {
             timestamp = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
             MessageModel message = new MessageModel(messageContent, "", timestamp, MessageModel.SENT);
-            messageList.add(message);
-            adapter.notifyItemInserted(messageList.size() - 1);
-            recyclerView.scrollToPosition(messageList.size() - 1);
+            if (!firstTimeMessage) {
+                messageList.add(message);
+                adapter.notifyItemInserted(messageList.size() - 1);
+                recyclerView.scrollToPosition(messageList.size() - 1);
+            }
             inputMessage.setText("");
 
             // Send message to Rasa
@@ -86,14 +106,40 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         Log.e("RasaResponse", "Error: " + response.errorBody());
                     }
+                    if (firstTimeMessage) {
+                        firstTimeMessage = false;
+                    }
                 }
+
+
 
                 @Override
                 public void onFailure(Call<List<RasaResponse>> call, Throwable t) {
                     Log.e("RasaResponse", "Failure: " + t.getMessage());
+                    if (firstTimeMessage) {
+                        firstTimeMessage = false;
+                    }
                 }
             });
         }
         Log.d("MainActivity", "Timestamp: " + timestamp);
     }
+
+    public String getLocalIpAddress() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            Log.e("MainActivity", ex.toString());
+        }
+        return null;
+    }
+
 }
