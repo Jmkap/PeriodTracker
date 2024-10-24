@@ -8,16 +8,18 @@ public class userSymptom {
     public userSymptom(String chatLog) {
         this.chatLog = chatLog;
     }
+    private int intensity;
 
-    public userSymptom(int id, String symptomName, String chatLog, int durationDays) {
+    public userSymptom(int id, String symptomName, String chatLog, int durationDays, int intensity) {
         this.id = id;
-        SymptomName = symptomName;
+        this.SymptomName = symptomName;
         this.chatLog = chatLog;
         this.durationDays = durationDays;
+        this.intensity = intensity;
     }
 
     public userSymptom() {
-        SymptomName = null;
+        this.SymptomName = null;
         this.chatLog = null;
     }
 
@@ -37,6 +39,10 @@ public class userSymptom {
         return this.durationDays;
     }
 
+    public int getIntensity() {
+        return intensity;
+    }
+
     public void setSymptomName(String name){
         this.SymptomName = name;
     }
@@ -47,5 +53,9 @@ public class userSymptom {
 
     public void setDurationDays(int numDays){
         this.durationDays = numDays;
+    }
+
+    public void setIntensity(int intensity) {
+        this.intensity = intensity;
     }
 }
