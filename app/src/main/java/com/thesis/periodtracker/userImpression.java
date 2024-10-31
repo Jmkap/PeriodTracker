@@ -1,11 +1,11 @@
 package com.thesis.periodtracker;
 
-public class userDiagnosis {
+public class userImpression {
     private String DiseaseName;
     private int rank, id;
     private float score;
 
-    public userDiagnosis(String diseaseName, int rank, int id, float score) {
+    public userImpression(String diseaseName, int rank, int id, float score) {
         DiseaseName = diseaseName;
         this.rank = rank;
         this.id = id;

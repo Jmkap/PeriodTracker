@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.text.SimpleDateFormat;
 
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
@@ -149,37 +148,49 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.insert(SESSION_IMPRESSION_TABLE, null, values);
     }
 
-    public String insertSymptoms(String symptomName, String chatLog, int intensity, int duration){
+    public String insertSymptoms(userSymptom symptom){
         SQLiteDatabase db = this.getWritableDatabase();
 
         String symptomID = UUID.randomUUID().toString();
 
         ContentValues values = new ContentValues();
         values.put(SYMPTOM_ID, symptomID);
-        values.put(SYMPTOM_NAME, symptomName);
-        values.put(SYMPTOM_DESCRIPTION, chatLog);
-        values.put(SYMPTOM_DURATION_DAYS, duration);
-        values.put(SYMPTOM_INTENSITY, intensity);
+        values.put(SYMPTOM_NAME, symptom.getSymptomName());
+        values.put(SYMPTOM_DESCRIPTION, symptom.getChatLog());
+        values.put(SYMPTOM_DURATION_DAYS, symptom.getDurationDays());
+        values.put(SYMPTOM_INTENSITY, symptom.getIntensity());
 
         db.insert(SYMPTOMS_TABLE, null, values);
 
         return symptomID;
     }
 
-    public String insertImpression(String diseaseName, float score, int rank){
+    public String insertImpression(userImpression impression){
         SQLiteDatabase db = this.getWritableDatabase();
 
         String impressionID = UUID.randomUUID().toString();
 
         ContentValues values = new ContentValues();
         values.put(IMPRESSION_ID, impressionID);
-        values.put(IMPRESSION_DISEASE_NAME, diseaseName);
-        values.put(IMPRESSION_SCORE, score);
-        values.put(IMPRESSION_RANK, rank);
-
+        values.put(IMPRESSION_DISEASE_NAME, impression.getDiseaseName());
+        values.put(IMPRESSION_SCORE, impression.getScore());
+        values.put(IMPRESSION_RANK, impression.getRank());
 
         db.insert(IMPRESSION_TABLE, null, values);
 
         return impressionID;
+    }
+
+    public String insertDiseaseRecord(userDisease disease, String sessionID){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String diseaseID = UUID.randomUUID().toString();
+
+        ContentValues values = new ContentValues();
+        values.put(DISEASE_ID, diseaseID);
+        values.put(DISEASE_SESSION_ID, sessionID);
+        values.put(DISEASE_NAME, disease.getDiseaseName());
+
+        return diseaseID;
     }
 }
