@@ -3,30 +3,19 @@ package com.thesis.periodtracker.UserModels;
 
 public class userSymptom {
     private String SymptomName, chatLog;
-    private int durationDays, id;
+    private int durationDays;
 
     public userSymptom(String chatLog) {
         this.chatLog = chatLog;
     }
     private int intensity;
 
-    public userSymptom(int id, String symptomName, String chatLog, int durationDays, int intensity) {
-        this.id = id;
+    public userSymptom(String symptomName, int durationDays, int intensity) {
         this.SymptomName = symptomName;
-        this.chatLog = chatLog;
+        // this.chatLog = chatLog;
         this.durationDays = durationDays;
         this.intensity = intensity;
     }
-
-    public userSymptom() {
-        this.SymptomName = null;
-        this.chatLog = null;
-    }
-
-    public int getId() {
-        return id;
-    }
-
     public String getSymptomName(){
         return this.SymptomName;
     }

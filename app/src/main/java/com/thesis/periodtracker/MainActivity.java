@@ -1,5 +1,6 @@
 package com.thesis.periodtracker;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,11 +15,14 @@ import com.google.gson.GsonBuilder;
 import com.thesis.periodtracker.Rasa.RasaApiService;
 import com.thesis.periodtracker.Rasa.RasaRequest;
 import com.thesis.periodtracker.Rasa.RasaResponseDeserializer;
-import com.thesis.periodtracker.Rasa.responses.ConditionResponse;
+import com.thesis.periodtracker.Rasa.responses.ImpressionResponse;
 import com.thesis.periodtracker.Rasa.responses.RasaResponse;
+import com.thesis.periodtracker.Rasa.responses.SymptomResponse;
 import com.thesis.periodtracker.Rasa.responses.TextResponse;
 import com.thesis.periodtracker.RecyclerView.MessageAdapter;
 import com.thesis.periodtracker.RecyclerView.MessageModel;
+import com.thesis.periodtracker.UserModels.userImpression;
+import com.thesis.periodtracker.UserModels.userSymptom;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -49,13 +53,15 @@ public class MainActivity extends AppCompatActivity {
     private RasaApiService rasaApiService;
     private boolean firstTimeMessage;
     private String sessionID;
+    private DatabaseHandler db;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        DatabaseHandler databaseHandler = new DatabaseHandler(this);
-        sessionID = databaseHandler.createSession();
+        this.db = new DatabaseHandler(this);
+        this.sessionID = db.createSession();
+
 
         firstTimeMessage = true;
         inputMessage = findViewById(R.id.inputMessage);
@@ -111,21 +117,28 @@ public class MainActivity extends AppCompatActivity {
                             String user_id = rasaResponse.getRecipientId();
                             String rasaMessage = null;
                             String control = null;
-                            if (rasaResponse instanceof TextResponse) {
+                            if (rasaResponse instanceof SymptomResponse) {
+                                SymptomResponse customResponse = (SymptomResponse) rasaResponse;
+                                control = customResponse.getCustom().getControl();
+
+                                // Handle symptom response
+                                userSymptom user_symptom = getUserSymptom(customResponse);
+                                String symptomID = db.insertSymptoms(user_symptom);
+                                db.createSymptomSession (symptomID, sessionID);
+
+                            } else if (rasaResponse instanceof ImpressionResponse) {
+                                ImpressionResponse customResponse = (ImpressionResponse) rasaResponse;
+                                control = customResponse.getCustom().getControl();
+
+                                // Handle impression response
+                                userImpression impression = getUserImpression(customResponse);
+                                String impressionID = db.insertImpression(impression);
+                                db.createImpressionSession (impressionID, sessionID);
+
+                            } else {
                                 rasaMessage = ((TextResponse) rasaResponse).getText();
                                 Log.d("TextResponse", "User ID: " + user_id + "\nText: " + rasaMessage);
                                 // Handle text response
-                            } else if (rasaResponse instanceof ConditionResponse) {
-                                ConditionResponse customResponse = (ConditionResponse) rasaResponse;
-                                control = customResponse.getCustom().getControl();
-                                String conditionName = customResponse.getCustom().getData().getConditionName();
-                                int conditionScore = customResponse.getCustom().getData().getConditionScore();
-                                boolean lifeThreat = customResponse.getCustom().getData().isLifeThreat();
-                                Log.d("ConditionResponse", "User ID: " + user_id + "\nJson: " + "{control: " + control + ",\n" +
-                                                                                                          "conditionName: " + conditionName + ",\n" +
-                                                                                                          "conditionScore: " + conditionScore + ", \n" +
-                                                                                                          "lifeThreat: " + lifeThreat + "}");
-                                // Handle custom JSON response
                             }
                             String rasaTimestamp = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
                             if (rasaMessage != null) {
@@ -158,6 +171,35 @@ public class MainActivity extends AppCompatActivity {
             });
         }
         Log.d("MainActivity", "Timestamp: " + timestamp);
+    }
+
+    @NonNull
+    private static userImpression getUserImpression(ImpressionResponse customResponse) {
+        String control = customResponse.getCustom().getControl();
+        String conditionName = customResponse.getCustom().getData().getConditionName();
+        int conditionScore = customResponse.getCustom().getData().getConditionScore();
+        boolean lifeThreat = customResponse.getCustom().getData().isLifeThreat();
+        int rank = customResponse.getCustom().getData().getRank();
+        Log.d("ConditionResponse", "\nJson: " + "{control: " + control + ",\n" +
+                                                  "conditionName: " + conditionName + ",\n" +
+                                                  "conditionScore: " + conditionScore + ", \n" +
+                                                  "lifeThreat: " + lifeThreat + "}");
+        userImpression impression = new userImpression(conditionName, rank, conditionScore);
+        return impression;
+    }
+
+    @NonNull
+    private static userSymptom getUserSymptom(SymptomResponse customResponse) {
+        String control = customResponse.getCustom().getControl();
+        String symptom = customResponse.getCustom().getData().getSymptomName();
+        int duration = customResponse.getCustom().getData().getDuration();
+        int intensity = customResponse.getCustom().getData().getIntensity();
+        Log.d("ConditionResponse", "\nJson: " + "{control: " + control + ",\n" +
+                                                  "symptom: " + symptom + ",\n" +
+                                                  "conditionScore: " + duration + ", \n" +
+                                                  "intensity: " + intensity + "}");
+        userSymptom user_symptom = new userSymptom(symptom, duration, intensity);
+        return user_symptom;
     }
 
     public String getLocalIpAddress() {

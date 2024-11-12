@@ -3,7 +3,7 @@ package com.thesis.periodtracker.Rasa.responses;
 import com.google.gson.annotations.SerializedName;
 
 
-public class ConditionResponse extends RasaResponse {
+public class ImpressionResponse extends RasaResponse {
     private CustomData custom;
 
     public CustomData getCustom() {
@@ -27,17 +27,19 @@ public class ConditionResponse extends RasaResponse {
         private String conditionName;
         private int conditionScore;
         private boolean lifeThreat;
+        private int rank;
 
         public String getConditionName() {
             return conditionName;
         }
-
         public int getConditionScore() {
             return conditionScore;
         }
-
         public boolean isLifeThreat() {
             return lifeThreat;
+        }
+        public int getRank() {
+            return rank;
         }
     }
 }

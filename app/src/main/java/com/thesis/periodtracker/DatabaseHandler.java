@@ -31,7 +31,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String SESSION_SYMP_SYMPTOM_ID = "symptom_id";
 
     public static final String SESSION_IMP_SESSION_ID = "session_id";
-    public static final String SESSION_IMP_DIAGNOSIS_ID = "impression_id";
+    public static final String SESSION_IMP_IMPRESSION_ID = "impression_id";
 
     public static final String SYMPTOM_ID = "id";
     public static final String SYMPTOM_NAME = "symptom_name";
@@ -69,7 +69,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         String CREATE_SYMPTOMS_TABLE = "CREATE TABLE IF NOT EXISTS " + SYMPTOMS_TABLE + "(" +
                 SYMPTOM_ID + " TEXT PRIMARY KEY," +
                 SYMPTOM_NAME + " TEXT," +
-                SYMPTOM_DESCRIPTION + " TEXT," +
+        //        SYMPTOM_DESCRIPTION + " TEXT," +
                 SYMPTOM_DURATION_DAYS + " INTEGER, " +
                 SYMPTOM_INTENSITY + " INTEGER " + ")";
 
@@ -93,9 +93,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         String CREATE_SESSION_DIAGNOSIS_TABLE = "CREATE TABLE IF NOT EXISTS " + SESSION_IMPRESSION_TABLE + "(" +
                 SESSION_IMP_SESSION_ID + " TEXT," +
-                SESSION_IMP_DIAGNOSIS_ID + " TEXT," +
+                SESSION_IMP_IMPRESSION_ID + " TEXT," +
                 "FOREIGN KEY(" + SESSION_IMP_SESSION_ID + ") REFERENCES " + SESSIONS_TABLE + "(" + SESSION_ID + ")," +
-                "FOREIGN KEY(" + SESSION_IMP_DIAGNOSIS_ID + ") REFERENCES " + IMPRESSION_TABLE + "(" + IMPRESSION_ID + "))";
+                "FOREIGN KEY(" + SESSION_IMP_IMPRESSION_ID + ") REFERENCES " + IMPRESSION_TABLE + "(" + IMPRESSION_ID + "))";
 
         db.execSQL(CREATE_SYMPTOMS_TABLE);
         db.execSQL(CREATE_DISEASES_TABLE);
@@ -147,8 +147,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(IMPRESSION_ID, impressionID);
-        values.put(SESSION_ID, sessionID);
+        values.put(SESSION_IMP_IMPRESSION_ID, impressionID);
+        values.put(SESSION_IMP_SESSION_ID, sessionID);
 
         db.insert(SESSION_IMPRESSION_TABLE, null, values);
     }
@@ -161,7 +161,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(SYMPTOM_ID, symptomID);
         values.put(SYMPTOM_NAME, symptom.getSymptomName());
-        values.put(SYMPTOM_DESCRIPTION, symptom.getChatLog());
+    //    values.put(SYMPTOM_DESCRIPTION, symptom.getChatLog());
         values.put(SYMPTOM_DURATION_DAYS, symptom.getDurationDays());
         values.put(SYMPTOM_INTENSITY, symptom.getIntensity());
 
