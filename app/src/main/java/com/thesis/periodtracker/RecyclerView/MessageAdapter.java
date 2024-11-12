@@ -1,11 +1,12 @@
-package com.thesis.periodtracker;
+package com.thesis.periodtracker.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.thesis.periodtracker.R;
 
 import java.util.ArrayList;
 

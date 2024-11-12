@@ -1,4 +1,4 @@
-package com.thesis.periodtracker;
+package com.thesis.periodtracker.RecyclerView;
 
 import android.view.View;
 

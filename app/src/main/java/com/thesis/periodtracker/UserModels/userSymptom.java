@@ -1,4 +1,4 @@
-package com.thesis.periodtracker;
+package com.thesis.periodtracker.UserModels;
 
 
 public class userSymptom {

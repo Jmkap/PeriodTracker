@@ -1,4 +1,4 @@
-package com.thesis.periodtracker;
+package com.thesis.periodtracker.Rasa;
 
 public class RasaRequest {
     private String sender;

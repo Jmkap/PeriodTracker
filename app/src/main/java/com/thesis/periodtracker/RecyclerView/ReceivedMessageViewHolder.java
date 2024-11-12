@@ -1,13 +1,11 @@
-package com.thesis.periodtracker;
+package com.thesis.periodtracker.RecyclerView;
 
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
+import com.thesis.periodtracker.R;
 
 public class ReceivedMessageViewHolder extends CustomViewHolder{
 

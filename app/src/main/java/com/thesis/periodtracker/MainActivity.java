@@ -9,6 +9,17 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.thesis.periodtracker.Rasa.RasaApiService;
+import com.thesis.periodtracker.Rasa.RasaRequest;
+import com.thesis.periodtracker.Rasa.RasaResponseDeserializer;
+import com.thesis.periodtracker.Rasa.responses.ConditionResponse;
+import com.thesis.periodtracker.Rasa.responses.RasaResponse;
+import com.thesis.periodtracker.Rasa.responses.TextResponse;
+import com.thesis.periodtracker.RecyclerView.MessageAdapter;
+import com.thesis.periodtracker.RecyclerView.MessageModel;
+
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -69,10 +80,13 @@ public class MainActivity extends AppCompatActivity {
     private void sendMessage() {
         String messageContent = inputMessage.getText().toString();
         OkHttpClient okHttpClient = new OkHttpClient();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
+                .create();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://192.168.254.102:5005/webhooks/rest/")
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
         String timestamp = null;
         if (!messageContent.isEmpty()) {
@@ -92,13 +106,37 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<List<RasaResponse>> call, Response<List<RasaResponse>> response) {
                     if (response.isSuccessful() && response.body() != null) {
+
                         for (RasaResponse rasaResponse : response.body()) {
-                            String rasaMessage = rasaResponse.getText();
+                            String user_id = rasaResponse.getRecipientId();
+                            String rasaMessage = null;
+                            String control = null;
+                            if (rasaResponse instanceof TextResponse) {
+                                rasaMessage = ((TextResponse) rasaResponse).getText();
+                                Log.d("TextResponse", "User ID: " + user_id + "\nText: " + rasaMessage);
+                                // Handle text response
+                            } else if (rasaResponse instanceof ConditionResponse) {
+                                ConditionResponse customResponse = (ConditionResponse) rasaResponse;
+                                control = customResponse.getCustom().getControl();
+                                String conditionName = customResponse.getCustom().getData().getConditionName();
+                                int conditionScore = customResponse.getCustom().getData().getConditionScore();
+                                boolean lifeThreat = customResponse.getCustom().getData().isLifeThreat();
+                                Log.d("ConditionResponse", "User ID: " + user_id + "\nJson: " + "{control: " + control + ",\n" +
+                                                                                                          "conditionName: " + conditionName + ",\n" +
+                                                                                                          "conditionScore: " + conditionScore + ", \n" +
+                                                                                                          "lifeThreat: " + lifeThreat + "}");
+                                // Handle custom JSON response
+                            }
                             String rasaTimestamp = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
-                            MessageModel responseMessage = new MessageModel(rasaMessage, "", rasaTimestamp, MessageModel.RECEIVED);
-                            messageList.add(responseMessage);
-                            adapter.notifyItemInserted(messageList.size() - 1);
-                            recyclerView.scrollToPosition(messageList.size() - 1);
+                            if (rasaMessage != null) {
+                                MessageModel responseMessage = new MessageModel(rasaMessage, "", rasaTimestamp, MessageModel.RECEIVED);
+                                messageList.add(responseMessage);
+                                adapter.notifyItemInserted(messageList.size() - 1);
+                                recyclerView.scrollToPosition(messageList.size() - 1);
+                            }
+
+                            //debugging
+                            Log.d("RasaResponse", "User ID: " + user_id + "\nText: " + rasaMessage + "\nJson: " + control);
                         }
                     } else {
                         Log.e("RasaResponse", "Error: " + response.errorBody());

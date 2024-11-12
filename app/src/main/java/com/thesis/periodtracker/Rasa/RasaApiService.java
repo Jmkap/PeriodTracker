@@ -1,4 +1,6 @@
-package com.thesis.periodtracker;
+package com.thesis.periodtracker.Rasa;
+
+import com.thesis.periodtracker.Rasa.responses.RasaResponse;
 
 import java.util.List;
 import retrofit2.Call;

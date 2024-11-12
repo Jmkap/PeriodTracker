@@ -4,6 +4,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.thesis.periodtracker.UserModels.userDisease;
+import com.thesis.periodtracker.UserModels.userImpression;
+import com.thesis.periodtracker.UserModels.userSymptom;
+
 import java.text.SimpleDateFormat;
 
 
