@@ -1,7 +1,9 @@
 package com.thesis.periodtracker;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -12,9 +14,11 @@ import com.thesis.periodtracker.UserModels.userSymptom;
 import java.text.SimpleDateFormat;
 
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
@@ -197,5 +201,31 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(DISEASE_NAME, disease.getDiseaseName());
 
         return diseaseID;
+    }
+
+    public List<userSymptom> getSymptoms(){
+        List<userSymptom> symptom_list = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT " + SYMPTOM_NAME + "," + SYMPTOM_DURATION_DAYS + ","+ SYMPTOM_INTENSITY + "FROM " + SYMPTOMS_TABLE;
+
+
+        try (Cursor cursor = db.rawQuery(query, null)) {
+            if (cursor.moveToFirst()) {
+                do {
+                    @SuppressLint("Range") String sName = cursor.getString(cursor.getColumnIndex(SYMPTOM_NAME));
+                    @SuppressLint("Range") int duration = cursor.getInt(cursor.getColumnIndex(SYMPTOM_DURATION_DAYS));
+                    @SuppressLint("Range") int intense = cursor.getInt(cursor.getColumnIndex(SYMPTOM_INTENSITY));
+
+                    userSymptom currentSymptom = new userSymptom(sName, duration, intense);
+                    symptom_list.add(currentSymptom);
+                } while (cursor.moveToNext());
+            }
+            //cursor.close();
+        }
+
+
+
+        return symptom_list;
     }
 }

@@ -2,11 +2,20 @@ package com.thesis.periodtracker;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
@@ -24,6 +33,9 @@ import com.thesis.periodtracker.RecyclerView.MessageModel;
 import com.thesis.periodtracker.UserModels.userImpression;
 import com.thesis.periodtracker.UserModels.userSymptom;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -54,15 +66,28 @@ public class MainActivity extends AppCompatActivity {
     private boolean firstTimeMessage;
     private String sessionID;
     private DatabaseHandler db;
+
+    private userSymptom s = new userSymptom("Name", 3, 5);
+
+    Button button;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
+        setContentView(R.layout.activity_main);
 
         this.db = new DatabaseHandler(this);
         this.sessionID = db.createSession();
 
+        db.insertSymptoms(s);
 
+        button = findViewById(R.id.button);
+        ActivityCompat.requestPermissions(this,new String[]
+                {Manifest.permission.WRITE_EXTERNAL_STORAGE}, PackageManager.PERMISSION_GRANTED);
+
+        createPDF();
+
+        /*
         firstTimeMessage = true;
         inputMessage = findViewById(R.id.inputMessage);
         LayoutSend = findViewById(R.id.LayoutSend);
@@ -73,14 +98,15 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+         */
 
         // retrofit = RetrofitClient.getClient("http://0.0.0.0:5055");
         //rasaApiService = retrofit.create(RasaApiService.class);
 
-        LayoutSend.setOnClickListener(v -> sendMessage());
+        //LayoutSend.setOnClickListener(v -> sendMessage());
 
-        inputMessage.setText("Hello");
-        this.sendMessage();
+        //inputMessage.setText("Hello");
+        //this.sendMessage();
     }
 
     private void sendMessage() {
@@ -218,5 +244,70 @@ public class MainActivity extends AppCompatActivity {
         }
         return null;
     }
+
+    private void createPDF() {
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String string = "Name";
+                String dia = "Some text here";
+
+                int age = 12;
+                int x;
+                int y = 120;
+
+                //List<userSymptom> sList = db.getSymptoms(); doesn't work when I call this
+
+
+                PdfDocument newPDF = new PdfDocument();
+                Paint paint = new Paint();
+
+
+                PdfDocument.PageInfo myPageInfo1 = new PdfDocument.PageInfo.Builder(960, 1680, 1).create();
+                PdfDocument.Page myPage1 = newPDF.startPage(myPageInfo1);
+
+                Canvas canvas = myPage1.getCanvas();
+
+                paint.setTextSize(24.0f);
+                canvas.drawText("Patient Name: " + string, 40, 50, paint);
+
+                paint.setTextSize(24.0f);
+                canvas.drawText("Age: " + age, 40, 80, paint);
+
+                paint.setTextSize(24.0f);
+                canvas.drawText("List of Found Symptoms: ", 40, 130, paint);
+
+                paint.setTextSize(24.0f);
+                /*
+                for (int i = 0; i < sList.size(); i++){
+                    canvas.drawText("Symptom: " + sList.get(i).getSymptomName(), 60, 50 + y, paint);
+                    y+= 35;
+                }
+                */
+
+                paint.setTextSize(24.0f);
+                canvas.drawText("Chatbot Impression: " + dia, 40, 70 + y, paint);
+
+
+                newPDF.finishPage(myPage1);
+
+                File file = null;
+
+                file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Thing.pdf");
+
+                try {
+                    newPDF.writeTo(new FileOutputStream(file));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                newPDF.close();
+            }
+        });
+
+            }
+
+
+
 
 }
