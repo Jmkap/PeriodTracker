@@ -79,7 +79,11 @@ public class MainActivity extends AppCompatActivity {
         this.db = new DatabaseHandler(this);
         this.sessionID = db.createSession();
 
+        ArrayList<String> sList = new ArrayList<>();
+
         db.insertSymptoms(s);
+        //sList = db.getSymptoms();
+
 
         button = findViewById(R.id.button);
         ActivityCompat.requestPermissions(this,new String[]
