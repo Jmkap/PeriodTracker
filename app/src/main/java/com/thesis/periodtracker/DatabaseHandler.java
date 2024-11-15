@@ -204,28 +204,21 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public List<userSymptom> getSymptoms(){
-        List<userSymptom> symptom_list = new ArrayList<>();
+        ArrayList<userSymptom> symptom_list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
 
         String query = "SELECT " + SYMPTOM_NAME + "," + SYMPTOM_DURATION_DAYS + ","+ SYMPTOM_INTENSITY + "FROM " + SYMPTOMS_TABLE;
+        Cursor cursor = db.rawQuery(query, null);
 
-
-        try (Cursor cursor = db.rawQuery(query, null)) {
             if (cursor.moveToFirst()) {
                 do {
-                    @SuppressLint("Range") String sName = cursor.getString(cursor.getColumnIndex(SYMPTOM_NAME));
-                    @SuppressLint("Range") int duration = cursor.getInt(cursor.getColumnIndex(SYMPTOM_DURATION_DAYS));
-                    @SuppressLint("Range") int intense = cursor.getInt(cursor.getColumnIndex(SYMPTOM_INTENSITY));
+                    symptom_list.add(new userSymptom(cursor.getString(2), cursor.getInt(3), (cursor.getInt(4))));
 
-                    userSymptom currentSymptom = new userSymptom(sName, duration, intense);
-                    symptom_list.add(currentSymptom);
+                    //userSymptom currentSymptom = new userSymptom(sName, duration, intense);
+                   //symptom_list.add(currentSymptom);
                 } while (cursor.moveToNext());
             }
-            //cursor.close();
-        }
-
-
-
-        return symptom_list;
+            cursor.close();
+            return symptom_list;
     }
 }
