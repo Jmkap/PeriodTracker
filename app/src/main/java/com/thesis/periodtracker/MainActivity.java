@@ -251,12 +251,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String string = "Name";
                 String dia = "Some text here";
+                ArrayList<userSymptom> sList = new ArrayList<>();
 
                 int age = 12;
                 int x;
                 int y = 120;
 
-                //List<userSymptom> sList = db.getSymptoms(); doesn't work when I call this
+                //sList = db.getSymptoms(); doesn't work when I call this
 
 
                 PdfDocument newPDF = new PdfDocument();
