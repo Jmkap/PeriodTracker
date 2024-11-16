@@ -253,16 +253,41 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                ArrayList<String> sList = new ArrayList<>();
+                sList = db.getSymptoms();
+
+                ArrayList<userImpression> impList = new ArrayList<>();
+                impList = db.getImpressions();
+
                 String string = "Name";
                 String dia = "Some text here";
-                ArrayList<userSymptom> sList = new ArrayList<>();
 
                 int age = 12;
                 int x;
                 int y = 120;
 
-                //sList = db.getSymptoms(); doesn't work when I call this
+                int check;
+                int set;
+                userImpression temp;
 
+                //censors Ovarian Cancer
+                for (int i = 0; i < impList.size(); i++){
+                    if (Objects.equals(impList.get(i).getDiseaseName(), "Ovarian Cancer")){
+                        impList.get(i).setDiseaseName("WARNING!");
+                    }
+                }
+
+                //sorts the impression list
+                for (check = 0; check < impList.size(); check++){
+                    for (set = impList.size() - 1; set > check; set--){
+                        if (impList.get(check).getRank() > impList.get(set).getRank()){
+                            temp = impList.get(check);
+                            impList.set(check, impList.get(set));
+                            impList.set(set, temp);
+                        }
+                    }
+                }
 
                 PdfDocument newPDF = new PdfDocument();
                 Paint paint = new Paint();
@@ -280,25 +305,36 @@ public class MainActivity extends AppCompatActivity {
                 canvas.drawText("Age: " + age, 40, 80, paint);
 
                 paint.setTextSize(24.0f);
-                canvas.drawText("List of Found Symptoms: ", 40, 130, paint);
+                canvas.drawText("List of Found Symptoms: " +sList.size(), 40, 130, paint);
+
+                for (int i = 0; i < 5; i++){
+                    canvas.drawText("Symptom: " + sList.get(i), 60, 50 + y, paint);
+                    y+= 35;
+                }
+
+
+
 
                 paint.setTextSize(24.0f);
                 /*
                 for (int i = 0; i < sList.size(); i++){
-                    canvas.drawText("Symptom: " + sList.get(i).getSymptomName(), 60, 50 + y, paint);
+                    canvas.drawText("Symptom: " + sList.get(i), 60, 50 + y, paint);
                     y+= 35;
                 }
                 */
 
+
+
                 paint.setTextSize(24.0f);
-                canvas.drawText("Chatbot Impression: " + dia, 40, 70 + y, paint);
+
+                //canvas.drawText("Chatbot Impression: " + dia, 40, 70 + y, paint);
 
 
                 newPDF.finishPage(myPage1);
 
-                File file = null;
+                //File file = null;
 
-                file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Thing.pdf");
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Thing.pdf");
 
                 try {
                     newPDF.writeTo(new FileOutputStream(file));
@@ -311,6 +347,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
             }
+
 
 
 

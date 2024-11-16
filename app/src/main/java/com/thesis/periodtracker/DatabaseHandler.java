@@ -207,15 +207,33 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         ArrayList<String> symptom_list = new ArrayList<>();
 
-        String query = "SELECT " + SYMPTOM_NAME + " FROM " + SYMPTOMS_TABLE;
+        String query = "SELECT " + SYMPTOM_ID + " FROM " + SYMPTOMS_TABLE;
         Cursor cursor = db.rawQuery(query, null);
 
             if (cursor.moveToFirst()) {
                 do {
-                    symptom_list.add(cursor.getString(cursor.getColumnIndexOrThrow(SYMPTOM_NAME)));
+                    symptom_list.add(cursor.getString(cursor.getColumnIndexOrThrow(SYMPTOM_ID)));
                 } while (cursor.moveToNext());
             }
             cursor.close();
             return symptom_list;
+    }
+
+    public ArrayList<userImpression> getImpressions() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<userImpression> impression_list = new ArrayList<>();
+
+        String query = "SELECT " + IMPRESSION_DISEASE_NAME + ", " + IMPRESSION_RANK + ", " + IMPRESSION_SCORE + " FROM " + IMPRESSION_TABLE;
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                impression_list.add(new userImpression(cursor.getString(cursor.getColumnIndexOrThrow(IMPRESSION_DISEASE_NAME)),
+                        cursor.getInt(cursor.getColumnIndexOrThrow(IMPRESSION_RANK)),
+                        cursor.getFloat(cursor.getColumnIndexOrThrow(IMPRESSION_SCORE))));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return impression_list;
     }
 }
