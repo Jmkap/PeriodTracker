@@ -249,21 +249,23 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    private void createPDF() {
+    private void createPDF(UserInfoItem item, String sessionID) {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                ArrayList<String> sList = new ArrayList<>();
-                sList = db.getSymptoms();
+                LocalDate date = LocalDate.now();
+
+                ArrayList<userSymptom> sList = new ArrayList<>();
+                sList = db.getSymptoms(sessionID);
 
                 ArrayList<userImpression> impList = new ArrayList<>();
-                impList = db.getImpressions();
+                impList = db.getImpressions(sessionID);
 
-                String string = "Name";
-                String dia = "Some text here";
+                String string = item.getName();
+                //String dia = "Some text here";
 
-                int age = 12;
+                int age = item.getAge();
                 int x;
                 int y = 120;
 
@@ -278,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                //sorts the impression list
+                //sorts the impression list using Bubble Sort
                 for (check = 0; check < impList.size(); check++){
                     for (set = impList.size() - 1; set > check; set--){
                         if (impList.get(check).getRank() > impList.get(set).getRank()){
@@ -298,24 +300,45 @@ public class MainActivity extends AppCompatActivity {
 
                 Canvas canvas = myPage1.getCanvas();
 
-                paint.setTextSize(24.0f);
+                paint.setTextSize(12.0f);
                 canvas.drawText("Patient Name: " + string, 40, 50, paint);
 
-                paint.setTextSize(24.0f);
+                paint.setTextSize(12.0f);
+                if(item.isMenopause()){
+                    canvas.drawText("Menopause: Yes", 250, 50, paint);
+                }
+                else{
+                    canvas.drawText("Menopause: No", 250, 50, paint);
+                }
+
+                paint.setTextSize(12.0f);
+                canvas.drawText("Date: " + date, 800, 50, paint);
+
+                paint.setTextSize(12.0f);
                 canvas.drawText("Age: " + age, 40, 80, paint);
 
-                paint.setTextSize(24.0f);
-                canvas.drawText("List of Found Symptoms: " +sList.size(), 40, 130, paint);
+                paint.setTextSize(12.0f);
+                if(item.isPuberty()){
+                    canvas.drawText("Had Puberty: Yes", 250, 80, paint);
+                }
+                else{
+                    canvas.drawText("Had Puberty: No", 250, 80, paint);
+                }
 
-                for (int i = 0; i < 5; i++){
-                    canvas.drawText("Symptom: " + sList.get(i), 60, 50 + y, paint);
-                    y+= 35;
+                paint.setTextSize(12.0f);
+                canvas.drawText("List of Found Symptoms: " + sList.size(), 40, 130, paint);
+
+
+                for (int i = 0; i < sList.size(); i++){
+                    canvas.drawText("Symptom: " + sList.get(i).getSymptomName(), 60, 50 + y, paint);
+                    canvas.drawText("Duration (days): " + sList.get(i).getDurationDays(), 200, 50 + y, paint);
+                    canvas.drawText("Intensity (1 - 10): " + sList.get(i).getIntensity(), 350, 50 + y, paint);
+                    y+= 25;
                 }
 
 
 
-
-                paint.setTextSize(24.0f);
+                paint.setTextSize(12.0f);
                 /*
                 for (int i = 0; i < sList.size(); i++){
                     canvas.drawText("Symptom: " + sList.get(i), 60, 50 + y, paint);
@@ -323,11 +346,9 @@ public class MainActivity extends AppCompatActivity {
                 }
                 */
 
+                paint.setTextSize(12.0f);
 
-
-                paint.setTextSize(24.0f);
-
-                //canvas.drawText("Chatbot Impression: " + dia, 40, 70 + y, paint);
+                //canvas.drawText("Chatbot Impression: " + impList.get(0).getDiseaseName(), 40, 70 + y, paint);
 
 
                 newPDF.finishPage(myPage1);
@@ -347,9 +368,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
             }
-
-
-
 
 
 }

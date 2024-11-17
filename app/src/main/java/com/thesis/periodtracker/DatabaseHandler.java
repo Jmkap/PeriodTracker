@@ -203,16 +203,28 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return diseaseID;
     }
 
-    public ArrayList<String> getSymptoms(){
+    public ArrayList<userSymptom> getSymptoms(String sessionID){
         SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<String> symptom_list = new ArrayList<>();
+        ArrayList<userSymptom> symptom_list = new ArrayList<>();
+        //String[] sID = {" "};
+        //sID[0] = sessionID;
 
-        String query = "SELECT " + SYMPTOM_ID + " FROM " + SYMPTOMS_TABLE;
-        Cursor cursor = db.rawQuery(query, null);
+        String q = "SELECT * FROM " + SESSION_SYMPTOMS_TABLE +
+                   " JOIN " + SYMPTOMS_TABLE +
+                   " ON " + SESSION_SYMP_SESSION_ID + " = ?" +
+                   " AND " + SESSION_SYMP_SYMPTOM_ID + " = " +
+                   SYMPTOM_ID
+                   ;
 
+        //String query = "SELECT " + SYMPTOM_ID + " FROM " + SYMPTOMS_TABLE;
+        //Cursor cursor = db.rawQuery(query, null);
+
+        Cursor cursor = db.rawQuery(q, new String[]{sessionID});
             if (cursor.moveToFirst()) {
                 do {
-                    symptom_list.add(cursor.getString(cursor.getColumnIndexOrThrow(SYMPTOM_ID)));
+                    symptom_list.add(new userSymptom(cursor.getString(cursor.getColumnIndexOrThrow(SYMPTOM_NAME)),
+                                                    cursor.getInt(cursor.getColumnIndexOrThrow(SYMPTOM_DURATION_DAYS)),
+                                                    cursor.getInt(cursor.getColumnIndexOrThrow(SYMPTOM_INTENSITY))));
                 } while (cursor.moveToNext());
             }
             cursor.close();
@@ -223,8 +235,14 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         ArrayList<userImpression> impression_list = new ArrayList<>();
 
-        String query = "SELECT " + IMPRESSION_DISEASE_NAME + ", " + IMPRESSION_RANK + ", " + IMPRESSION_SCORE + " FROM " + IMPRESSION_TABLE;
-        Cursor cursor = db.rawQuery(query, null);
+        String query = "SELECT * FROM " + SESSION_IMPRESSION_TABLE +
+                       " JOIN " + IMPRESSION_TABLE +
+                       " ON " + SESSION_IMP_SESSION_ID + " = ?" +
+                       " AND " + SESSION_IMP_IMPRESSION_ID + " = " +
+                       IMPRESSION_ID;
+
+        //String query = "SELECT " + IMPRESSION_DISEASE_NAME + ", " + IMPRESSION_RANK + ", " + IMPRESSION_SCORE + " FROM " + IMPRESSION_TABLE;
+        Cursor cursor = db.rawQuery(query, new String[]{sessionID});
 
         if (cursor.moveToFirst()) {
             do {
