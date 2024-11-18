@@ -317,8 +317,8 @@ public class MainActivity extends AppCompatActivity {
 
                 for (int i = 0; i < sList.size(); i++){
                     canvas.drawText("Symptom: " + sList.get(i).getSymptomName(), 60, 50 + y, paint);
-                    canvas.drawText("Duration (days): " + sList.get(i).getDurationDays(), 200, 50 + y, paint);
-                    canvas.drawText("Intensity (1 - 10): " + sList.get(i).getIntensity(), 350, 50 + y, paint);
+                    canvas.drawText("Duration (days): " + sList.get(i).getDurationDays(), 350, 50 + y, paint);
+                    canvas.drawText("Intensity (1 - 10): " + sList.get(i).getIntensity(), 500, 50 + y, paint);
                     y+= 20;
                 }
 
@@ -336,10 +336,17 @@ public class MainActivity extends AppCompatActivity {
 
                 canvas.drawText("Chatbot Impression: " + impList.get(0).getDiseaseName(), 40, 70 + y, paint);
 
-                for (int i = 0; i < impList.size(); i++){
+                for (int i = 0; i < 3; i++){
                     int place = i + 1;
-                    canvas.drawText("Rank " + place + ": " + impList.get(i).getDiseaseName(), 60, 100 + y, paint);
-                    y+=20;
+
+                    if(impList.isEmpty()){
+                        canvas.drawText("Rank " + place + ": ", 60, 100 + y, paint);
+                    }
+                    else{
+                        canvas.drawText("Rank " + place + ": " + impList.get(i).getDiseaseName() + "      " + "Confidence: " + impList.get(i).getScore(), 60, 100 + y, paint);
+                    }
+
+                    y += 20;
                 }
 
 
@@ -347,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
 
                 //File file = null;
 
-                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Thing.pdf");
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Generated Report.pdf");
 
                 try {
                     newPDF.writeTo(new FileOutputStream(file));
