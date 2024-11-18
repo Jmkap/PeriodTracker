@@ -254,4 +254,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         cursor.close();
         return impression_list;
     }
+
+    public String getDate(String sessionID){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String date = " ";
+
+        String query = "SELECT * FROM " + SESSIONS_TABLE +
+                       " WHERE " + SESSION_ID + " = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{sessionID});
+
+        if (cursor.moveToFirst()){
+            date = cursor.getString(cursor.getColumnIndexOrThrow(SESSION_DATE));
+        }
+        cursor.close();
+        return date;
+    }
 }
