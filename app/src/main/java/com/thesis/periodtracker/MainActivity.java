@@ -2,13 +2,16 @@ package com.thesis.periodtracker;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
 import android.os.Bundle;
@@ -18,7 +21,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.thesis.periodtracker.Rasa.RasaApiService;
@@ -69,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean firstTimeMessage;
     private String sessionID;
     private DatabaseHandler db;
+    private AppCompatImageView imageDownload;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         inputMessage = findViewById(R.id.inputMessage);
         LayoutSend = findViewById(R.id.LayoutSend);
         recyclerView = findViewById(R.id.recyclerview);
+        imageDownload = findViewById(R.id.imageDownload);
 
         messageList = new ArrayList<>();
         adapter = new MessageAdapter(messageList);
@@ -94,9 +101,35 @@ public class MainActivity extends AppCompatActivity {
         //rasaApiService = retrofit.create(RasaApiService.class);
 
         LayoutSend.setOnClickListener(v -> sendMessage());
+        imageDownload.setOnClickListener(v -> {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Request permission if not granted
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        100);
+            } else {
+                // Permission already granted, create PDF directly
+                createPDF();
+            }
+        });;
 
         // trigger each new app instance starts
         this.sendMessage();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                createPDF(); // Retry PDF creation if permission granted
+            } else {
+                Snackbar.make(findViewById(android.R.id.content),
+                        "Cannot create PDF without storage permission",
+                        Snackbar.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void sendMessage() {
@@ -286,66 +319,141 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createPDF() {
-        // Issue
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String string = "Name";
-                String dia = "Some text here";
+        final float MARGIN_LEFT = 40;
+        final float MARGIN_RIGHT = 920;  // Page width - margin
+        final float TEXT_SIZE = 16.0f;
+        final float LINE_HEIGHT = 25;
+        float currentY = 50;  // Starting Y position
+        boolean no_symp, no_imp = true;
 
-                int age = 12;
-                int x;
-                int y = 120;
+        String currDate = db.getSessionDate(this.sessionID);
+        String userName = userPreference.getUsername();
+        int age = userPreference.getAge();
 
-                //List<userSymptom> sList = db.getSymptoms(); doesn't work when I call this
+        List<userSymptom> symptomsList = db.getSymptomsBySessionId(this.sessionID);
+        List<userImpression> impressionsList = db.getImpressionsBySessionId(this.sessionID);
 
+        PdfDocument newPDF = new PdfDocument();
+        Paint paint = new Paint();
+        paint.setTextSize(TEXT_SIZE);
+        paint.setColor(Color.BLACK);
+        paint.setAntiAlias(true);
 
-                PdfDocument newPDF = new PdfDocument();
-                Paint paint = new Paint();
+        PdfDocument.PageInfo myPageInfo1 = new PdfDocument.PageInfo.Builder(960, 1680, 1).create();
+        PdfDocument.Page myPage1 = newPDF.startPage(myPageInfo1);
+        Canvas canvas = myPage1.getCanvas();
 
+        // Calculate column widths and positions
+        float dateWidth = paint.measureText("Date: " + currDate);
+        float symptomColWidth = 300;  // Width for symptom names
+        float durationColWidth = 200;  // Width for duration
+        float intensityColWidth = 200;  // Width for intensity
 
-                PdfDocument.PageInfo myPageInfo1 = new PdfDocument.PageInfo.Builder(960, 1680, 1).create();
-                PdfDocument.Page myPage1 = newPDF.startPage(myPageInfo1);
+        // Column start positions
+        float durationColX = MARGIN_LEFT + symptomColWidth;
+        float intensityColX = durationColX + durationColWidth;
 
-                Canvas canvas = myPage1.getCanvas();
+        // Header section with right-aligned date
+        canvas.drawText("Patient Name: " + userName, MARGIN_LEFT, currentY, paint);
+        canvas.drawText("Date: " + currDate, MARGIN_RIGHT - dateWidth, currentY, paint);
+        currentY += LINE_HEIGHT;
 
-                paint.setTextSize(24.0f);
-                canvas.drawText("Patient Name: " + string, 40, 50, paint);
+        canvas.drawText("Age: " + age, MARGIN_LEFT, currentY, paint);
+        currentY += LINE_HEIGHT * 2;
 
-                paint.setTextSize(24.0f);
-                canvas.drawText("Age: " + age, 40, 80, paint);
+        // Symptoms section
+        if (symptomsList != null && !symptomsList.isEmpty()) {
+            canvas.drawText("Number of Found Symptoms: " + symptomsList.size(), MARGIN_LEFT, currentY, paint);
+            currentY += LINE_HEIGHT * 1.5f;
 
-                paint.setTextSize(24.0f);
-                canvas.drawText("List of Found Symptoms: ", 40, 130, paint);
+            // Draw column headers
+            paint.setFakeBoldText(true);  // Make headers bold
+            canvas.drawText("Symptom", MARGIN_LEFT, currentY, paint);
+            canvas.drawText("Duration (days)", durationColX, currentY, paint);
+            canvas.drawText("Intensity (1-10)", intensityColX, currentY, paint);
+            paint.setFakeBoldText(false);
+            currentY += LINE_HEIGHT * 1.5f;
 
-                paint.setTextSize(24.0f);
-                /*
-                for (int i = 0; i < sList.size(); i++){
-                    canvas.drawText("Symptom: " + sList.get(i).getSymptomName(), 60, 50 + y, paint);
-                    y+= 35;
+            // Draw symptoms in columns
+            for (userSymptom symptom : symptomsList) {
+                // Truncate symptom name if too long
+                String symptomName = symptom.getSymptomName();
+                if (paint.measureText(symptomName) > symptomColWidth - 20) {
+                    while (paint.measureText(symptomName + "...") > symptomColWidth - 20) {
+                        symptomName = symptomName.substring(0, symptomName.length() - 1);
+                    }
+                    symptomName += "...";
                 }
-                */
 
-                paint.setTextSize(24.0f);
-                canvas.drawText("Chatbot Impression: " + dia, 40, 70 + y, paint);
+                canvas.drawText(symptomName, MARGIN_LEFT, currentY, paint);
+                canvas.drawText(String.valueOf(symptom.getDurationDays()), durationColX, currentY, paint);
+                canvas.drawText(String.valueOf(symptom.getIntensity()), intensityColX, currentY, paint);
 
-
-                newPDF.finishPage(myPage1);
-
-                File file = null;
-
-                file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Thing.pdf");
-
-                try {
-                    newPDF.writeTo(new FileOutputStream(file));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-                newPDF.close();
+                currentY += LINE_HEIGHT;
             }
-        });
+            no_symp = false;
+        } else {
+            canvas.drawText("No symptoms recorded", MARGIN_LEFT, currentY, paint);
+            currentY += LINE_HEIGHT;
+            no_symp = true;
+        }
 
+        currentY += LINE_HEIGHT * 1.5f;
+
+        // Impressions section
+        if (impressionsList != null && !impressionsList.isEmpty()) {
+            paint.setFakeBoldText(true);
+            canvas.drawText("Chatbot Impression: " + impressionsList.get(0).getDiseaseName(),
+                    MARGIN_LEFT, currentY, paint);
+            currentY += LINE_HEIGHT * 1.5f;
+
+            // Draw impression column headers
+            canvas.drawText("Condition", MARGIN_LEFT, currentY, paint);
+            canvas.drawText("Confidence (%)", durationColX, currentY, paint);
+            paint.setFakeBoldText(false);
+            currentY += LINE_HEIGHT;
+
+            // Draw impressions in columns
+            for (int i = 0; i < impressionsList.size(); i++) {
+                userImpression impression = impressionsList.get(i);
+                String rankText = String.format(Locale.US, "Rank %d: %s", (i + 1),
+                        impression.getDiseaseName());
+
+                canvas.drawText(rankText, MARGIN_LEFT, currentY, paint);
+                canvas.drawText(String.format(Locale.US, "%.1f", impression.getScore()),
+                        durationColX, currentY, paint);
+
+                currentY += LINE_HEIGHT;
+            }
+            no_imp = false;
+        } else {
+            canvas.drawText("No impressions available", MARGIN_LEFT, currentY, paint);
+            no_imp = true;
+        }
+
+        newPDF.finishPage(myPage1);
+
+        File pdfFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                "ImpressionReport-" + currDate + ".pdf");
+        if (pdfFile.exists()) {
+            Log.d("ExistingPDF", "PDF already exists");
+
+            pdfFile.delete();
+        }
+
+        try {
+            newPDF.writeTo(new FileOutputStream(pdfFile));
+            Snackbar.make(findViewById(android.R.id.content),
+                    "PDF generated successfully! Check your downloads folder",
+                    Snackbar.LENGTH_LONG).show();
+        } catch (IOException e) {
+            Log.e("PDF_CREATION", "Error writing PDF file", e);
+            Snackbar.make(findViewById(android.R.id.content),
+                    "Error generating PDF",
+                    Snackbar.LENGTH_LONG).show();
+        } finally {
+            newPDF.close();
+        }
     }
 
 

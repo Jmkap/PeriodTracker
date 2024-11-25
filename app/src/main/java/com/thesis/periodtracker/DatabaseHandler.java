@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.thesis.periodtracker.UserModels.userDisease;
 import com.thesis.periodtracker.UserModels.userImpression;
@@ -203,29 +204,85 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return diseaseID;
     }
 
-    public List<userSymptom> getSymptoms(){
-        List<userSymptom> symptom_list = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
+    public List<userSymptom> getSymptomsBySessionId(String sessionId) {
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+        List<userSymptom> symptoms = new ArrayList<>();
 
-        String query = "SELECT " + SYMPTOM_NAME + "," + SYMPTOM_DURATION_DAYS + ","+ SYMPTOM_INTENSITY + "FROM " + SYMPTOMS_TABLE;
+        try {
+            db = this.getReadableDatabase();
 
+            String query = "SELECT s.* FROM " + SYMPTOMS_TABLE + " s " +
+                    "JOIN " + SESSION_SYMPTOMS_TABLE + " ss ON s." + SYMPTOM_ID + " = ss." + SESSION_SYMP_SYMPTOM_ID + " " +
+                    "WHERE ss." + SESSION_SYMP_SESSION_ID + " = ?";
 
-        try (Cursor cursor = db.rawQuery(query, null)) {
-            if (cursor.moveToFirst()) {
+            cursor = db.rawQuery(query, new String[]{sessionId});
+
+            if (cursor != null && cursor.moveToFirst()) {
                 do {
-                    @SuppressLint("Range") String sName = cursor.getString(cursor.getColumnIndex(SYMPTOM_NAME));
-                    @SuppressLint("Range") int duration = cursor.getInt(cursor.getColumnIndex(SYMPTOM_DURATION_DAYS));
-                    @SuppressLint("Range") int intense = cursor.getInt(cursor.getColumnIndex(SYMPTOM_INTENSITY));
+                    String symptomName = cursor.getString(cursor.getColumnIndexOrThrow(SYMPTOM_NAME));
+                    int durationDays = cursor.getInt(cursor.getColumnIndexOrThrow(SYMPTOM_DURATION_DAYS));
+                    int intensity = cursor.getInt(cursor.getColumnIndexOrThrow(SYMPTOM_INTENSITY));
 
-                    userSymptom currentSymptom = new userSymptom(sName, duration, intense);
-                    symptom_list.add(currentSymptom);
+                    userSymptom symptom = new userSymptom(symptomName, durationDays, intensity);
+                    symptoms.add(symptom);
                 } while (cursor.moveToNext());
             }
-            //cursor.close();
+        } catch (Exception e) {
+            Log.e("DbError", "Error fetching symptoms for sessionId: " + sessionId, e);
+        } finally {
+            if (cursor != null) cursor.close();
         }
 
+        return symptoms;
+    }
 
+    public List<userImpression> getImpressionsBySessionId(String sessionId) {
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+        List<userImpression> impressions = new ArrayList<>();
 
-        return symptom_list;
+        try {
+            db = this.getReadableDatabase();
+
+            String query = "SELECT i.* FROM " + IMPRESSION_TABLE + " i " +
+                    "JOIN " + SESSION_IMPRESSION_TABLE + " si ON i." + IMPRESSION_ID + " = si." + SESSION_IMP_IMPRESSION_ID + " " +
+                    "WHERE si." + SESSION_IMP_SESSION_ID + " = ? " +
+                    "ORDER BY i." + IMPRESSION_RANK + " ASC";
+
+            cursor = db.rawQuery(query, new String[]{sessionId});
+
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    String diseaseName = cursor.getString(cursor.getColumnIndexOrThrow(IMPRESSION_DISEASE_NAME));
+                    int rank = cursor.getInt(cursor.getColumnIndexOrThrow(IMPRESSION_RANK));
+                    float score = cursor.getFloat(cursor.getColumnIndexOrThrow(IMPRESSION_SCORE));
+
+                    userImpression impression = new userImpression(diseaseName, rank, score);
+                    impressions.add(impression);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e("DbError", "Error fetching impressions for sessionId: " + sessionId, e);
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+
+        return impressions;
+    }
+    public String getSessionDate(String sessionId) {
+        String date = "";
+        try (SQLiteDatabase db = this.getReadableDatabase();
+             Cursor cursor = db.rawQuery(
+                     "SELECT " + SESSION_DATE + " FROM " + SESSIONS_TABLE +
+                             " WHERE " + SESSION_ID + " = ?", new String[]{sessionId})) {
+
+            if (cursor != null && cursor.moveToFirst()) {
+                date = cursor.getString(cursor.getColumnIndexOrThrow(SESSION_DATE));
+            }
+        } catch (Exception e) {
+            Log.e("DbError", "Error fetching date for sessionId: " + sessionId, e);
+        }
+        return date;
     }
 }
