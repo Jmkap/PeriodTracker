@@ -14,6 +14,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -102,7 +103,10 @@ public class MainActivity extends AppCompatActivity {
 
         LayoutSend.setOnClickListener(v -> sendMessage());
         imageDownload.setOnClickListener(v -> {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                createPDF();
+            }
+            else if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
                 // Request permission if not granted
                 ActivityCompat.requestPermissions(this,
@@ -112,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                 // Permission already granted, create PDF directly
                 createPDF();
             }
-        });;
+        });
 
         // trigger each new app instance starts
         this.sendMessage();
@@ -148,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.254.102:5005/webhooks/rest/")
+                .baseUrl("http://192.168.254.156:5005/webhooks/rest/")
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
