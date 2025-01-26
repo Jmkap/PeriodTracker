@@ -67,18 +67,15 @@ import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String debugging;
     private UserPreferenceHandler userPreference;
     private EditText inputMessage;
-    private FrameLayout LayoutSend;
     private RecyclerView recyclerView;
     private MessageAdapter adapter;
     private ArrayList<MessageModel> messageList;
-    private RasaApiService rasaApiService;
     private boolean firstTimeMessage;
     private String sessionID;
     private DatabaseHandler db;
-    private AppCompatImageView imageDownload;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,9 +88,9 @@ public class MainActivity extends AppCompatActivity {
 
         firstTimeMessage = true;
         inputMessage = findViewById(R.id.inputMessage);
-        LayoutSend = findViewById(R.id.LayoutSend);
+        FrameLayout layoutSend = findViewById(R.id.LayoutSend);
         recyclerView = findViewById(R.id.recyclerview);
-        imageDownload = findViewById(R.id.imageDownload);
+        AppCompatImageView imageDownload = findViewById(R.id.imageDownload);
 
         messageList = new ArrayList<>();
         adapter = new MessageAdapter(messageList);
@@ -104,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         // retrofit = RetrofitClient.getClient("http://0.0.0.0:5055");
         //rasaApiService = retrofit.create(RasaApiService.class);
 
-        LayoutSend.setOnClickListener(v -> sendMessage());
+        layoutSend.setOnClickListener(v -> sendMessage());
         imageDownload.setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
                 createPDF();
@@ -157,9 +154,15 @@ public class MainActivity extends AppCompatActivity {
                 .addInterceptor(chain -> {
                     okhttp3.Request request = chain.request();
 
+
                     okhttp3.Response response = chain.proceed(request);
                     // Capture the raw response body
-                    String rawJson = response.body().string();
+                    String rawJson = null;
+                    if (response.body() != null) {
+                        rawJson = response.body().string();
+                    } else {
+                        Log.e("NullResponseBody", "response.body is null");
+                    }
                     Log.d("RawResponse", rawJson);
 
                     // Rebuild the response because the body can only be consumed once
@@ -171,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
-        String computerIp = getComputerIPv4();
+        String computerIp = "192.168.254.102";
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://" + computerIp + ":5005/webhooks/rest/")
                 .client(okHttpClient)
@@ -210,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
                 rasaRequest = new RasaRequest("android_user", messageContent);
             }
 
-            rasaApiService = retrofit.create(RasaApiService.class);
+            RasaApiService rasaApiService = retrofit.create(RasaApiService.class);
             rasaApiService.sendMessage(rasaRequest).enqueue(new Callback<List<RasaResponse>>() {
                 @Override
                 public void onResponse(Call<List<RasaResponse>> call, Response<List<RasaResponse>> response) {
@@ -278,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<List<RasaResponse>> call, Throwable t) {
-                    Log.e("RasaResponse", "Failure: " + t + "\n" + debugging);
+                    Log.e("RasaResponse", "Failure: " + t);
                     if (firstTimeMessage) {
                         firstTimeMessage = false;
                     }

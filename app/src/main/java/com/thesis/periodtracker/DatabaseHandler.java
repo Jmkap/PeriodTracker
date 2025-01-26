@@ -1,6 +1,5 @@
 package com.thesis.periodtracker;
 
-import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -8,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.thesis.periodtracker.UserModels.userDisease;
 import com.thesis.periodtracker.UserModels.userImpression;
 import com.thesis.periodtracker.UserModels.userSymptom;
 
@@ -40,7 +38,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     public static final String SYMPTOM_ID = "id";
     public static final String SYMPTOM_NAME = "symptom_name";
-    public static final String SYMPTOM_DESCRIPTION = "chat_log";
     public static final String SYMPTOM_DURATION_DAYS = "duration_days";
     public static final String SYMPTOM_INTENSITY =  "intensity";
 
@@ -55,10 +52,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public static final String IMPRESSION_DISEASE_NAME = "disease_name";
     public static final String IMPRESSION_SCORE = "score";
     public static final String IMPRESSION_RANK = "rank";
-
-    private String currSessonID = "";
-    private String currSympSessonID = "";
-    private String currImpSessonID = "";
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -134,7 +127,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
         db.insert(SESSIONS_TABLE, null, values);
 
-        this.currSessonID = sessionID;
         return sessionID;
     }
 
@@ -191,27 +183,25 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return impressionID;
     }
 
-    public String insertDiseaseRecord(userDisease disease, String sessionID){
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        String diseaseID = UUID.randomUUID().toString();
-
-        ContentValues values = new ContentValues();
-        values.put(DISEASE_ID, diseaseID);
-        values.put(DISEASE_SESSION_ID, sessionID);
-        values.put(DISEASE_NAME, disease.getDiseaseName());
-
-        return diseaseID;
-    }
+//    public String insertDiseaseRecord(userDisease disease, String sessionID){
+//        SQLiteDatabase db = this.getWritableDatabase();
+//
+//        String diseaseID = UUID.randomUUID().toString();
+//
+//        ContentValues values = new ContentValues();
+//        values.put(DISEASE_ID, diseaseID);
+//        values.put(DISEASE_SESSION_ID, sessionID);
+//        values.put(DISEASE_NAME, disease.getDiseaseName());
+//
+//        return diseaseID;
+//    }
 
     public List<userSymptom> getSymptomsBySessionId(String sessionId) {
-        SQLiteDatabase db = null;
         Cursor cursor = null;
         List<userSymptom> symptoms = new ArrayList<>();
 
         try {
-            db = this.getReadableDatabase();
-
+            SQLiteDatabase db = this.getReadableDatabase();
             String query = "SELECT s.* FROM " + SYMPTOMS_TABLE + " s " +
                     "JOIN " + SESSION_SYMPTOMS_TABLE + " ss ON s." + SYMPTOM_ID + " = ss." + SESSION_SYMP_SYMPTOM_ID + " " +
                     "WHERE ss." + SESSION_SYMP_SESSION_ID + " = ?";
@@ -238,17 +228,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     }
 
     public List<userImpression> getImpressionsBySessionId(String sessionId) {
-        SQLiteDatabase db = null;
         Cursor cursor = null;
         List<userImpression> impressions = new ArrayList<>();
 
         try {
-            db = this.getReadableDatabase();
-
+            SQLiteDatabase db = this.getReadableDatabase();
             String query = "SELECT i.* FROM " + IMPRESSION_TABLE + " i " +
                     "JOIN " + SESSION_IMPRESSION_TABLE + " si ON i." + IMPRESSION_ID + " = si." + SESSION_IMP_IMPRESSION_ID + " " +
                     "WHERE si." + SESSION_IMP_SESSION_ID + " = ? " +
-                    "ORDER BY i." + IMPRESSION_RANK + " ASC";
+                    "ORDER BY i." + IMPRESSION_SCORE + " DESC";
 
             cursor = db.rawQuery(query, new String[]{sessionId});
 
