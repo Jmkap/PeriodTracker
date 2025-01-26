@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.thesis.periodtracker.Rasa.responses.ImageResponse;
 import com.thesis.periodtracker.Rasa.responses.ImpressionResponse;
 import com.thesis.periodtracker.Rasa.responses.RasaResponse;
+import com.thesis.periodtracker.Rasa.responses.RestartResponse;
 import com.thesis.periodtracker.Rasa.responses.SymptomResponse;
 import com.thesis.periodtracker.Rasa.responses.TextResponse;
 import com.thesis.periodtracker.Rasa.responses.UserInfoResponse;
@@ -24,17 +25,21 @@ public class RasaResponseDeserializer implements JsonDeserializer<RasaResponse> 
             String control = customObject.get("control").getAsString();
 
             // Check the control type to determine the response type
-            if ("record_condition".equals(control)) {
-                // Deserialize as ConditionResponse
-                return new Gson().fromJson(json, ImpressionResponse.class);
-            } else if ("record_symptom".equals(control)) {
-                // Deserialize as SymptomResponse
-                return new Gson().fromJson(json, SymptomResponse.class);
-            } else if ("record_user_info".equals(control)) {
-                // Deserialize as UserInfoResponse
-                return new Gson().fromJson(json, UserInfoResponse.class);
-            } else {
-                throw new JsonParseException("Unknown custom response type");
+            switch (control) {
+                case "record_condition":
+                    // Deserialize as ConditionResponse
+                    return new Gson().fromJson(json, ImpressionResponse.class);
+                case "record_symptom":
+                    // Deserialize as SymptomResponse
+                    return new Gson().fromJson(json, SymptomResponse.class);
+                case "record_user_info":
+                    // Deserialize as UserInfoResponse
+                    return new Gson().fromJson(json, UserInfoResponse.class);
+                case "create_new_session":
+                    // Deserialize as RestartResponse
+                    return new Gson().fromJson(json, RestartResponse.class);
+                default:
+                    throw new JsonParseException("Unknown custom response type");
             }
         } else {
             throw new JsonParseException("Unknown response type");

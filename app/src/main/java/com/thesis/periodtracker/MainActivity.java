@@ -30,6 +30,7 @@ import com.thesis.periodtracker.Rasa.RasaResponseDeserializer;
 import com.thesis.periodtracker.Rasa.responses.ImageResponse;
 import com.thesis.periodtracker.Rasa.responses.ImpressionResponse;
 import com.thesis.periodtracker.Rasa.responses.RasaResponse;
+import com.thesis.periodtracker.Rasa.responses.RestartResponse;
 import com.thesis.periodtracker.Rasa.responses.SymptomResponse;
 import com.thesis.periodtracker.Rasa.responses.TextResponse;
 import com.thesis.periodtracker.Rasa.responses.UserInfoResponse;
@@ -223,6 +224,8 @@ public class MainActivity extends AppCompatActivity {
                             String rasaMessage = null;
                             String imageURL = null;
                             String control = null;
+
+
                             if (rasaResponse instanceof SymptomResponse) {
                                 SymptomResponse customResponse = (SymptomResponse) rasaResponse;
                                 control = customResponse.getCustom().getControl();
@@ -248,11 +251,13 @@ public class MainActivity extends AppCompatActivity {
                                 // Handle User Info Response
                                 UserInfoItem user_info = getUserInfoItem(customResponse);
                                 userPreference.saveUserInfo(user_info);
-                            } else if (rasaResponse instanceof ImageResponse){
+                            } else if (rasaResponse instanceof ImageResponse) {
                                 ImageResponse imageResponse = (ImageResponse) rasaResponse;
                                 rasaMessage = "";
                                 imageURL = imageResponse.getImageUrl();
                                 Log.d("ImageResponse", "User ID: " + user_id + "\nImage URL: " + imageURL);
+                            } else if (rasaResponse instanceof RestartResponse) {
+                                sessionID = db.createSession();
                             } else {
                                 rasaMessage = ((TextResponse) rasaResponse).getText();
                                 Log.d("TextResponse", "User ID: " + user_id + "\nText: " + rasaMessage);
