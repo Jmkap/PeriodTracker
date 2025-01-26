@@ -419,7 +419,11 @@ public class MainActivity extends AppCompatActivity {
 
                 canvas.drawText(symptomName, MARGIN_LEFT, currentY, paint);
                 canvas.drawText(String.valueOf(symptom.getDurationDays()), durationColX, currentY, paint);
-                canvas.drawText(String.valueOf(symptom.getIntensity()), intensityColX, currentY, paint);
+                if (symptom.getIntensity() >= 0) {
+                    canvas.drawText(String.valueOf(symptom.getIntensity()), intensityColX, currentY, paint);
+                } else {
+                    canvas.drawText("Not Applicable", intensityColX, currentY, paint);
+                }
 
                 currentY += LINE_HEIGHT;
             }
