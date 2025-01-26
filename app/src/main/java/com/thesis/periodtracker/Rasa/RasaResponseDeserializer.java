@@ -1,6 +1,7 @@
 package com.thesis.periodtracker.Rasa;
 
 import com.google.gson.*;
+import com.thesis.periodtracker.Rasa.responses.ImageResponse;
 import com.thesis.periodtracker.Rasa.responses.ImpressionResponse;
 import com.thesis.periodtracker.Rasa.responses.RasaResponse;
 import com.thesis.periodtracker.Rasa.responses.SymptomResponse;
@@ -16,6 +17,8 @@ public class RasaResponseDeserializer implements JsonDeserializer<RasaResponse> 
 
         if (jsonObject.has("text")) {
             return new Gson().fromJson(json, TextResponse.class);  // Text Response
+        } else if (jsonObject.has("image")) {
+            return new Gson().fromJson(json, ImageResponse.class);  // Image response
         } else if (jsonObject.has("custom")) {
             JsonObject customObject = jsonObject.getAsJsonObject("custom");
             String control = customObject.get("control").getAsString();

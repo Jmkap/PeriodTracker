@@ -62,6 +62,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.ResponseBody;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -149,7 +151,24 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        OkHttpClient okHttpClient = new OkHttpClient();
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(chain -> {
+                    okhttp3.Request request = chain.request();
+
+                    okhttp3.Response response = chain.proceed(request);
+                    // Capture the raw response body
+                    String rawJson = response.body().string();
+                    Log.d("RawResponse", rawJson);
+
+                    // Rebuild the response because the body can only be consumed once
+                    return response.newBuilder()
+                            .body(ResponseBody.create(rawJson, response.body().contentType()))
+                            .build();
+                })
+                .build();
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
@@ -195,8 +214,6 @@ public class MainActivity extends AppCompatActivity {
             rasaApiService.sendMessage(rasaRequest).enqueue(new Callback<List<RasaResponse>>() {
                 @Override
                 public void onResponse(Call<List<RasaResponse>> call, Response<List<RasaResponse>> response) {
-                    debugging = response.raw().toString();
-                    Log.d("OnResponse", "Entered On Response: debugging");
                     if (response.isSuccessful() && response.body() != null) {
                         for (RasaResponse rasaResponse : response.body()) {
                             String user_id = rasaResponse.getRecipientId();
@@ -230,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
                                 userPreference.saveUserInfo(user_info);
                             } else if (rasaResponse instanceof ImageResponse){
                                 ImageResponse imageResponse = (ImageResponse) rasaResponse;
-                                rasaMessage = imageResponse.getText();
+                                rasaMessage = "";
                                 imageURL = imageResponse.getImageUrl();
                                 Log.d("ImageResponse", "User ID: " + user_id + "\nImage URL: " + imageURL);
                             } else {

@@ -30,8 +30,10 @@ public class ReceivedMessageViewHolder extends CustomViewHolder{
                 .load(message.getImageUrl())
                 .into(ivImage);
         if (message.getImageUrl() != null && !message.getImageUrl().isEmpty()){
+            this.tvMessage.setVisibility(View.GONE);
             this.ivImage.setVisibility(View.VISIBLE);
         } else {
+            this.tvMessage.setVisibility(View.VISIBLE);
             this.ivImage.setVisibility(View.INVISIBLE);
         }
     }
