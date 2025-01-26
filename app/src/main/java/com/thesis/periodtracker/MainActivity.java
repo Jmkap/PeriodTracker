@@ -18,11 +18,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
@@ -45,14 +42,9 @@ import com.thesis.periodtracker.UserModels.userSymptom;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 
@@ -64,6 +56,13 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.ResponseBody;
+
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.util.Collections;
+
 
 
 public class MainActivity extends AppCompatActivity {
@@ -172,8 +171,9 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
+        String computerIp = getComputerIPv4();
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.254.102:5005/webhooks/rest/")
+                .baseUrl("http://" + computerIp + ":5005/webhooks/rest/")
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
@@ -288,6 +288,25 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "Timestamp: " + timestamp);
     }
 
+    public static String getComputerIPv4() {
+        try {
+            for (NetworkInterface networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                if (networkInterface.isLoopback() || !networkInterface.isUp())
+                    continue;
+
+                for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
+                    if (address instanceof Inet4Address && !address.isLoopbackAddress()) {
+                        Log.d("IPAddress", address.toString());
+                        return address.getHostAddress();
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @NonNull
     private static userImpression getUserImpression(ImpressionResponse customResponse) {
         String control = customResponse.getCustom().getControl();
@@ -329,23 +348,6 @@ public class MainActivity extends AppCompatActivity {
                 "In Menopause?: " + inMenopause + "}");
         UserInfoItem user_info = new UserInfoItem(age, name, inMenopause);
         return user_info;
-    }
-
-    public String getLocalIpAddress() {
-        try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
-                NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
-                        return inetAddress.getHostAddress();
-                    }
-                }
-            }
-        } catch (SocketException ex) {
-            Log.e("MainActivity", ex.toString());
-        }
-        return null;
     }
 
     private void createPDF() {
