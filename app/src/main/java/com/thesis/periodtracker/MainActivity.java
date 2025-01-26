@@ -30,6 +30,7 @@ import com.google.gson.GsonBuilder;
 import com.thesis.periodtracker.Rasa.RasaApiService;
 import com.thesis.periodtracker.Rasa.RasaRequest;
 import com.thesis.periodtracker.Rasa.RasaResponseDeserializer;
+import com.thesis.periodtracker.Rasa.responses.ImageResponse;
 import com.thesis.periodtracker.Rasa.responses.ImpressionResponse;
 import com.thesis.periodtracker.Rasa.responses.RasaResponse;
 import com.thesis.periodtracker.Rasa.responses.SymptomResponse;
@@ -65,6 +66,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String debugging;
     private UserPreferenceHandler userPreference;
     private EditText inputMessage;
     private FrameLayout LayoutSend;
@@ -137,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendMessage() {
-        String messageContent = inputMessage.getText().toString();
+        String messageContent = inputMessage.getText().toString()   ;
 
         if (firstTimeMessage) {
             if (userPreference.isFirstTimeUser()) {
@@ -152,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.254.156:5005/webhooks/rest/")
+                .baseUrl("http://192.168.254.102:5005/webhooks/rest/")
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
@@ -160,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (!messageContent.isEmpty()) {
             timestamp = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
-            MessageModel message = new MessageModel(messageContent, "", timestamp, MessageModel.SENT);
+            MessageModel message = new MessageModel(messageContent, null, "", timestamp, MessageModel.SENT);
             if (!firstTimeMessage && !messageContent.startsWith("/")) {
                 messageList.add(message);
                 adapter.notifyItemInserted(messageList.size() - 1);
@@ -193,19 +195,21 @@ public class MainActivity extends AppCompatActivity {
             rasaApiService.sendMessage(rasaRequest).enqueue(new Callback<List<RasaResponse>>() {
                 @Override
                 public void onResponse(Call<List<RasaResponse>> call, Response<List<RasaResponse>> response) {
+                    debugging = response.raw().toString();
+                    Log.d("OnResponse", "Entered On Response: debugging");
                     if (response.isSuccessful() && response.body() != null) {
-
                         for (RasaResponse rasaResponse : response.body()) {
                             String user_id = rasaResponse.getRecipientId();
                             String rasaMessage = null;
+                            String imageURL = null;
                             String control = null;
                             if (rasaResponse instanceof SymptomResponse) {
                                 SymptomResponse customResponse = (SymptomResponse) rasaResponse;
                                 control = customResponse.getCustom().getControl();
 
                                 // Handle symptom response
-                                userSymptom user_symptom = getUserSymptom(customResponse);
-                                String symptomID = db.insertSymptoms(user_symptom);
+                                userSymptom userSymptom = getUserSymptom(customResponse);
+                                String symptomID = db.insertSymptoms(userSymptom);
                                 db.createSymptomSession (symptomID, sessionID);
 
                             } else if (rasaResponse instanceof ImpressionResponse) {
@@ -224,6 +228,11 @@ public class MainActivity extends AppCompatActivity {
                                 // Handle User Info Response
                                 UserInfoItem user_info = getUserInfoItem(customResponse);
                                 userPreference.saveUserInfo(user_info);
+                            } else if (rasaResponse instanceof ImageResponse){
+                                ImageResponse imageResponse = (ImageResponse) rasaResponse;
+                                rasaMessage = imageResponse.getText();
+                                imageURL = imageResponse.getImageUrl();
+                                Log.d("ImageResponse", "User ID: " + user_id + "\nImage URL: " + imageURL);
                             } else {
                                 rasaMessage = ((TextResponse) rasaResponse).getText();
                                 Log.d("TextResponse", "User ID: " + user_id + "\nText: " + rasaMessage);
@@ -231,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             String rasaTimestamp = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
                             if (rasaMessage != null) {
-                                MessageModel responseMessage = new MessageModel(rasaMessage, "", rasaTimestamp, MessageModel.RECEIVED);
+                                MessageModel responseMessage = new MessageModel(rasaMessage, imageURL, "", rasaTimestamp, MessageModel.RECEIVED);
                                 messageList.add(responseMessage);
                                 adapter.notifyItemInserted(messageList.size() - 1);
                                 recyclerView.scrollToPosition(messageList.size() - 1);
@@ -241,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("RasaResponse", "User ID: " + user_id + "\nText: " + rasaMessage + "\nJson: " + control);
                         }
                     } else {
-                        Log.e("RasaResponse", "Error: " + response.errorBody());
+                        Log.e("RasaResponse", "Error: " + response.errorBody() );
                     }
                     if (firstTimeMessage) {
                         firstTimeMessage = false;
@@ -252,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<List<RasaResponse>> call, Throwable t) {
-                    Log.e("RasaResponse", "Failure: " + t.getMessage());
+                    Log.e("RasaResponse", "Failure: " + t + "\n" + debugging);
                     if (firstTimeMessage) {
                         firstTimeMessage = false;
                     }
@@ -437,13 +446,11 @@ public class MainActivity extends AppCompatActivity {
 
         newPDF.finishPage(myPage1);
 
-        File pdfFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                "ImpressionReport-" + currDate + ".pdf");
-        if (pdfFile.exists()) {
-            Log.d("ExistingPDF", "PDF already exists");
+        String fileDate = new SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.getDefault()).format(new Date());
 
-            pdfFile.delete();
-        }
+
+        File pdfFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                "ImpressionReport-" + fileDate + ".pdf");
 
         try {
             newPDF.writeTo(new FileOutputStream(pdfFile));
