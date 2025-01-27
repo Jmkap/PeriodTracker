@@ -39,7 +39,7 @@ public class RasaResponseDeserializer implements JsonDeserializer<RasaResponse> 
                     // Deserialize as RestartResponse
                     return new Gson().fromJson(json, RestartResponse.class);
                 default:
-                    throw new JsonParseException("Unknown custom response type");
+                    throw new JsonParseException("Unknown custom response  type");
             }
         } else {
             throw new JsonParseException("Unknown response type");

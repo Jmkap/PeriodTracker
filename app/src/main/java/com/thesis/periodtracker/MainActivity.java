@@ -85,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
         userPreference = UserPreferenceHandler.getInstance(this);
 
         this.db = new DatabaseHandler(this);
-        this.sessionID = db.createSession();
 
         firstTimeMessage = true;
         inputMessage = findViewById(R.id.inputMessage);
