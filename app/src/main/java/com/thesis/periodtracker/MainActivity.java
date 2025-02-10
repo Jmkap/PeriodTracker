@@ -63,7 +63,7 @@ import java.net.SocketException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.Collections;
-
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -170,11 +170,14 @@ public class MainActivity extends AppCompatActivity {
                             .body(ResponseBody.create(rawJson, response.body().contentType()))
                             .build();
                 })
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
                 .build();
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
-        String computerIp = "192.168.254.102";
+        String computerIp = getString(R.string.rasa_server);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://" + computerIp + ":5005/webhooks/rest/")
                 .client(okHttpClient)
