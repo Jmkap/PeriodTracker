@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Menstruabot</string>
+    <string name="app_name">Menstruabot-local</string>
     <string name="rasa_server">54.253.153.237</string>
 </resources>
