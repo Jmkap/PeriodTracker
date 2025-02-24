@@ -35,8 +35,24 @@
         android:padding="20dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@id/topPanel"
-        app:layout_constraintBottom_toTopOf="@id/LayoutSend"/>
+        app:layout_constraintBottom_toTopOf="@id/typing"/>
     <!--android:overScrollMode="never"-->
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/typing"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        app:layout_constraintBottom_toTopOf="@id/LayoutSend"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/recyclerview"
+        app:layout_constraintVertical_bias="0.333"
+        app:lottie_rawRes="@raw/typing_animation"
+        app:lottie_repeatCount="15"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"/>
 
     <FrameLayout
         android:id="@+id/LayoutSend"
