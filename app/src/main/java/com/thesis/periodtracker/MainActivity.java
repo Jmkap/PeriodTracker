@@ -18,9 +18,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -77,6 +79,9 @@ public class MainActivity extends AppCompatActivity {
     private String sessionID;
     private DatabaseHandler db;
 
+    private LottieAnimationView typingAnimation;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
         FrameLayout layoutSend = findViewById(R.id.LayoutSend);
         recyclerView = findViewById(R.id.recyclerview);
         AppCompatImageView imageDownload = findViewById(R.id.imageDownload);
+        typingAnimation = findViewById(R.id.typing);
 
         messageList = new ArrayList<>();
         adapter = new MessageAdapter(messageList);
@@ -103,10 +109,9 @@ public class MainActivity extends AppCompatActivity {
 
         layoutSend.setOnClickListener(v -> sendMessage());
         imageDownload.setOnClickListener(v -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 createPDF();
-            }
-            else if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
                 // Request permission if not granted
                 ActivityCompat.requestPermissions(this,
@@ -137,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendMessage() {
-        String messageContent = inputMessage.getText().toString()   ;
+        String messageContent = inputMessage.getText().toString();
 
         if (firstTimeMessage) {
             if (userPreference.isFirstTimeUser()) {
@@ -177,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
-        String computerIp = getString(R.string.rasa_server);
+        String computerIp = "192.168.68.100"; //getString(R.string.rasa_server);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://" + computerIp + ":5005/webhooks/rest/")
                 .client(okHttpClient)
@@ -186,6 +191,9 @@ public class MainActivity extends AppCompatActivity {
         String timestamp = null;
 
         if (!messageContent.isEmpty()) {
+            typingAnimation.setVisibility(View.VISIBLE);
+            typingAnimation.playAnimation();
+
             timestamp = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
             MessageModel message = new MessageModel(messageContent, null, "", timestamp, MessageModel.SENT);
             if (!firstTimeMessage && !messageContent.startsWith("/")) {
@@ -205,11 +213,11 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("PreferencesChecking", "Current InMenopause: " + userPreference.isInMenopause());  // Should be true
                 Log.d("PreferencesChecking", "Should not be first time: " + userPreference.isFirstTimeUser());  // Should be false
                 rasaRequest = new RasaRequest(
-                    "android_user",
-                    messageContent,
-                    userPreference.getUsername(),
-                    userPreference.getAge(),
-                    userPreference.isInMenopause()
+                        "android_user",
+                        messageContent,
+                        userPreference.getUsername(),
+                        userPreference.getAge(),
+                        userPreference.isInMenopause()
                 );
             } else {
                 // Send regular message
@@ -220,6 +228,8 @@ public class MainActivity extends AppCompatActivity {
             rasaApiService.sendMessage(rasaRequest).enqueue(new Callback<List<RasaResponse>>() {
                 @Override
                 public void onResponse(Call<List<RasaResponse>> call, Response<List<RasaResponse>> response) {
+                    typingAnimation.setVisibility(View.GONE);
+                    typingAnimation.cancelAnimation();
                     if (response.isSuccessful() && response.body() != null) {
                         for (RasaResponse rasaResponse : response.body()) {
                             String user_id = rasaResponse.getRecipientId();
@@ -235,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                                 // Handle symptom response
                                 userSymptom userSymptom = getUserSymptom(customResponse);
                                 String symptomID = db.insertSymptoms(userSymptom);
-                                db.createSymptomSession (symptomID, sessionID);
+                                db.createSymptomSession(symptomID, sessionID);
 
                             } else if (rasaResponse instanceof ImpressionResponse) {
                                 ImpressionResponse customResponse = (ImpressionResponse) rasaResponse;
@@ -244,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
                                 // Handle impression response
                                 userImpression impression = getUserImpression(customResponse);
                                 String impressionID = db.insertImpression(impression);
-                                db.createImpressionSession (impressionID, sessionID);
+                                db.createImpressionSession(impressionID, sessionID);
 
                             } else if (rasaResponse instanceof UserInfoResponse) {
                                 UserInfoResponse customResponse = (UserInfoResponse) rasaResponse;
@@ -277,7 +287,10 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("RasaResponse", "User ID: " + user_id + "\nText: " + rasaMessage + "\nJson: " + control);
                         }
                     } else {
-                        Log.e("RasaResponse", "Error: " + response.errorBody() );
+                        Log.e("RasaResponse", "Error: " + response.errorBody());
+                        Snackbar.make(findViewById(android.R.id.content),
+                                "Connection timeout, Please try again",
+                                Snackbar.LENGTH_LONG).show();
                     }
                     if (firstTimeMessage) {
                         firstTimeMessage = false;
@@ -285,10 +298,15 @@ public class MainActivity extends AppCompatActivity {
                 }
 
 
-
                 @Override
                 public void onFailure(Call<List<RasaResponse>> call, Throwable t) {
                     Log.e("RasaResponse", "Failure: " + t);
+                    typingAnimation.setVisibility(View.GONE);
+                    typingAnimation.cancelAnimation();
+
+                    Snackbar.make(findViewById(android.R.id.content),
+                            "Connection timeout, Please try again",
+                            Snackbar.LENGTH_LONG).show();
                     if (firstTimeMessage) {
                         firstTimeMessage = false;
                     }
@@ -296,25 +314,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
         Log.d("MainActivity", "Timestamp: " + timestamp);
-    }
-
-    public static String getComputerIPv4() {
-        try {
-            for (NetworkInterface networkInterface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-                if (networkInterface.isLoopback() || !networkInterface.isUp())
-                    continue;
-
-                for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
-                    if (address instanceof Inet4Address && !address.isLoopbackAddress()) {
-                        Log.d("IPAddress", address.toString());
-                        return address.getHostAddress();
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     @NonNull
@@ -325,9 +324,9 @@ public class MainActivity extends AppCompatActivity {
         boolean lifeThreat = customResponse.getCustom().getData().isLifeThreat();
         int rank = customResponse.getCustom().getData().getRank();
         Log.d("ConditionResponse", "\nJson: " + "{control: " + control + ",\n" +
-                                                  "conditionName: " + conditionName + ",\n" +
-                                                  "conditionScore: " + conditionScore + ", \n" +
-                                                  "lifeThreat: " + lifeThreat + "}");
+                "conditionName: " + conditionName + ",\n" +
+                "conditionScore: " + conditionScore + ", \n" +
+                "lifeThreat: " + lifeThreat + "}");
         userImpression impression = new userImpression(conditionName, rank, conditionScore);
         return impression;
     }
@@ -499,54 +498,4 @@ public class MainActivity extends AppCompatActivity {
             newPDF.close();
         }
     }
-
-
-
-
-    private void testUserPreferences() {
-        UserPreferenceHandler userPreferences = UserPreferenceHandler.getInstance(this);
-
-        // Test 1: Check initial/empty state
-        Log.d("PreferencesTest", "\nTest 1: Checking initial state");
-        Log.d("PreferencesTest", "Empty Username: '" + userPreferences.getUsername() + "'");  // Should be empty string
-        Log.d("PreferencesTest", "Empty Age: " + userPreferences.getAge());  // Should be 0
-        Log.d("PreferencesTest", "Empty InMenopause: " + userPreferences.isInMenopause());  // Should be false
-        Log.d("PreferencesTest", "Should be first time: " + userPreferences.isFirstTimeUser());  // Should be true
-
-        // Test 2: Save user info
-        Log.d("PreferencesTest", "\nTest 2: Saving user information");
-        userPreferences.testSave("Mary", 25, false);
-
-        // Test 3: Verify saved data
-        Log.d("PreferencesTest", "\nTest 3: Verifying saved data");
-        Log.d("PreferencesTest", "Username: " + userPreferences.getUsername());  // Should be Mary
-        Log.d("PreferencesTest", "Age: " + userPreferences.getAge());  // Should be 25
-        Log.d("PreferencesTest", "InMenopause: " + userPreferences.isInMenopause());  // Should be false
-        Log.d("PreferencesTest", "Should not be first time: " + userPreferences.isFirstTimeUser());  // Should be false
-
-        // Test 4: Simulate app restart (create new instance)
-        Log.d("PreferencesTest", "\nTest 4: Simulating app restart");
-        UserPreferenceHandler restartedPreferences = UserPreferenceHandler.getInstance(this);
-        Log.d("PreferencesTest", "After 'restart' - Username: " + restartedPreferences.getUsername());  // Should still be Mary
-        Log.d("PreferencesTest", "After 'restart' - Age: " + restartedPreferences.getAge());  // Should still be 25
-        Log.d("PreferencesTest", "After 'restart' - InMenopause: " + restartedPreferences.isInMenopause());  // Should still be false
-        Log.d("PreferencesTest", "After 'restart' - Should not be first time: " + restartedPreferences.isFirstTimeUser());  // Should still be false
-
-        // Test 5: Clear data and verify empty state
-        Log.d("PreferencesTest", "\nTest 5: Testing clear functionality");
-        userPreferences.clearUserData();
-        Log.d("PreferencesTest", "After clear - Username: '" + userPreferences.getUsername() + "'");  // Should be empty
-        Log.d("PreferencesTest", "After clear - Age: " + userPreferences.getAge());  // Should be 0
-        Log.d("PreferencesTest", "After clear - InMenopause: " + userPreferences.isInMenopause());  // Should be false
-        Log.d("PreferencesTest", "After clear - Should be first time: " + userPreferences.isFirstTimeUser());  // Should be true
-
-        // Test 6: Save new data after clear
-        Log.d("PreferencesTest", "\nTest 6: Saving new data after clear");
-        userPreferences.testSave("Jane", 30, true);
-        Log.d("PreferencesTest", "New Username: " + userPreferences.getUsername());  // Should be Jane
-        Log.d("PreferencesTest", "New Age: " + userPreferences.getAge());  // Should be 30
-        Log.d("PreferencesTest", "New InMenopause: " + userPreferences.isInMenopause());  // Should be true
-        Log.d("PreferencesTest", "Should not be first time: " + userPreferences.isFirstTimeUser());  // Should be false
-    }
-
 }
