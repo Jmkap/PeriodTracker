@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
-        String computerIp = "192.168.68.100"; //getString(R.string.rasa_server);
+        String computerIp = "192.168.1.83"; //getString(R.string.rasa_server);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://" + computerIp + ":5005/webhooks/rest/")
                 .client(okHttpClient)
@@ -427,7 +427,11 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 canvas.drawText(symptomName, MARGIN_LEFT, currentY, paint);
-                canvas.drawText(String.valueOf(symptom.getDurationDays()), durationColX, currentY, paint);
+                if (symptom.getDurationDays() >= 0){
+                    canvas.drawText(String.valueOf(symptom.getDurationDays()), durationColX, currentY, paint);
+                } else {
+                    canvas.drawText("Not Known/Applicable", durationColX, currentY, paint);
+                }
                 if (symptom.getIntensity() >= 0) {
                     canvas.drawText(String.valueOf(symptom.getIntensity()), intensityColX, currentY, paint);
                 } else {
