@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(RasaResponse.class, new RasaResponseDeserializer())
                 .create();
-        String computerIp = "192.168.1.83"; //getString(R.string.rasa_server);
+        String computerIp = getString(R.string.rasa_server); //getString(R.string.rasa_server);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://" + computerIp + ":5005/webhooks/rest/")
                 .client(okHttpClient)
