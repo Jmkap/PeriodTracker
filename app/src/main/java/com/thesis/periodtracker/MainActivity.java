@@ -411,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
             paint.setFakeBoldText(true);  // Make headers bold
             canvas.drawText("Symptom", MARGIN_LEFT, currentY, paint);
             canvas.drawText("Duration (days)", durationColX, currentY, paint);
-            canvas.drawText("Intensity (1-10)", intensityColX, currentY, paint);
+            canvas.drawText("Intensity (0-10)", intensityColX, currentY, paint);
             paint.setFakeBoldText(false);
             currentY += LINE_HEIGHT * 1.5f;
 
@@ -427,7 +427,11 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 canvas.drawText(symptomName, MARGIN_LEFT, currentY, paint);
-                canvas.drawText(String.valueOf(symptom.getDurationDays()), durationColX, currentY, paint);
+                if (symptom.getDurationDays() >= 0){
+                    canvas.drawText(String.valueOf(symptom.getDurationDays()), durationColX, currentY, paint);
+                } else {
+                    canvas.drawText("Not Known/Applicable", durationColX, currentY, paint);
+                }
                 if (symptom.getIntensity() >= 0) {
                     canvas.drawText(String.valueOf(symptom.getIntensity()), intensityColX, currentY, paint);
                 } else {
